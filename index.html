@@ -1,0 +1,280 @@
+Copy<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Group Registration - FocusFirst.ai</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .form-section {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .location-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .result {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Focus Group Registration</h1>
+            <p>Join our research community and share your valuable insights</p>
+        </div>
+        
+        <div class="form-section">
+            <div class="location-info" id="locationInfo">
+                <strong>📍 Location Detection:</strong> <span id="locationStatus">Detecting your location...</span>
+            </div>
+            
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="city">City/Location *</label>
+                    <input type="text" id="city" name="city" required placeholder="Enter your city">
+                </div>
+                
+                <div class="form-group">
+                    <label for="ageRange">Age Range *</label>
+                    <select id="ageRange" name="ageRange" required>
+                        <option value="">Select your age range</option>
+                        <option value="18-24">18-24</option>
+                        <option value="25-34">25-34</option>
+                        <option value="35-44">35-44</option>
+                        <option value="45-54">45-54</option>
+                        <option value="55-64">55-64</option>
+                        <option value="65+">65+</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="availability">Preferred Time Availability</label>
+                    <select id="availability" name="availability">
+                        <option value="">Select preferred time</option>
+                        <option value="weekday-morning">Weekday Morning</option>
+                        <option value="weekday-afternoon">Weekday Afternoon</option>
+                        <option value="weekday-evening">Weekday Evening</option>
+                        <option value="weekend-morning">Weekend Morning</option>
+                        <option value="weekend-afternoon">Weekend Afternoon</option>
+                        <option value="weekend-evening">Weekend Evening</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="experience">Previous Focus Group Experience</label>
+                    <select id="experience" name="experience">
+                        <option value="">Select experience level</option>
+                        <option value="none">No previous experience</option>
+                        <option value="1-2">1-2 focus groups</option>
+                        <option value="3-5">3-5 focus groups</option>
+                        <option value="5+">More than 5 focus groups</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="interests">Areas of Interest (Optional)</label>
+                    <textarea id="interests" name="interests" rows="3" placeholder="What types of products or services are you most interested in discussing?"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="comments">Additional Comments</label>
+                    <textarea id="comments" name="comments" rows="3" placeholder="Any questions or additional information you'd like to share?"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Register for Focus Group</button>
+            </form>
+            
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let locationData = {};
+        
+        // Simple IP and location detection
+        async function detectLocation() {
+            const locationStatus = document.getElementById('locationStatus');
+            
+            try {
+                // Try to get IP address using a simple service
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                locationData.ip = data.ip;
+                
+                // Try to get location data
+                try {
+                    const locationResponse = await fetch(`https://ipapi.co/${data.ip}/json/`);
+                    const locationInfo = await locationResponse.json();
+                    
+                    if (locationInfo.city) {
+                        locationData = {
+                            ...locationData,
+                            city: locationInfo.city,
+                            region: locationInfo.region,
+                            country: locationInfo.country_name,
+                            timezone: locationInfo.timezone
+                        };
+                        locationStatus.innerHTML = `Detected: ${locationInfo.city}, ${locationInfo.region}, ${locationInfo.country_name}`;
+                        
+                        // Auto-fill city field if empty
+                        const cityField = document.getElementById('city');
+                        if (!cityField.value && locationInfo.city) {
+                            cityField.value = `${locationInfo.city}, ${locationInfo.region}`;
+                        }
+                    } else {
+                        locationStatus.innerHTML = 'Location detection unavailable - please enter your city manually';
+                    }
+                } catch (locError) {
+                    locationStatus.innerHTML = 'Location detection unavailable - please enter your city manually';
+                }
+                
+            } catch (error) {
+                locationStatus.innerHTML = 'Location detection unavailable - please enter your city manually';
+            }
+        }
+        
+        // Form submission handler
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Collect form data
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Add location data
+            data.locationData = locationData;
+            data.submissionTime = new Date().toISOString();
+            
+            // Display result (you can modify this to send to your endpoint)
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h3>Registration Submitted Successfully!</h3>
+                <p><strong>Thank you, ${data.fullName}!</strong> Your registration has been received.</p>
+                <details>
+                    <summary>Captured Data (for your reference)</summary>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </details>
+                <p><em>You can modify this form to send data to your Google Sheet, email, or webhook endpoint.</em></p>
+            `;
+            resultDiv.style.display = 'block';
+            
+            // Here you would typically send the data to your backend
+            // Example: fetch('your-webhook-url', { method: 'POST', body: JSON.stringify(data) })
+        });
+        
+        // Initialize location detection
+        detectLocation();
+    </script>
+</body>
+</html>
