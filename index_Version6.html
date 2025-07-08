@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Group Registration - FocusFirst.ai</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .form-section { padding: 40px; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .submit-btn:hover { transform: translateY(-2px); }
+        .location-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        .result {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .consent-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .consent-group label {
+            font-weight: 400;
+            color: #555;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .file-upload-note {
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Focus Group Registration</h1>
+            <p>Join our research community and share your valuable insights</p>
+        </div>
+        <div class="form-section">
+            <div class="location-info" id="locationInfo">
+                <strong>📍 Location Detection:</strong> <span id="locationStatus">Detecting your location...</span>
+            </div>
+            <form id="registrationForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="fullName">Full Name (Last, First) *</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Doe, John" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="cellPhone">Cell Phone Number *</label>
+                    <input type="tel" id="cellPhone" name="cellPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="city">City, State *</label>
+                    <input type="text" id="city" name="city" required placeholder="e.g. Birmingham, AL">
+                </div>
+                <div class="form-group">
+                    <label for="dob">Date of Birth *</label>
+                    <input type="date" id="dob" name="dob" required>
+                </div>
+                <div class="form-group">
+                    <label for="maritalStatus">Marital Status *</label>
+                    <select id="maritalStatus" name="maritalStatus" required>
+                        <option value="">Select status</option>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="partnered">Partnered</option>
+                        <option value="divorced">Divorced</option>
+                        <option value="widowed">Widowed</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="education">Educational Background *</label>
+                    <select id="education" name="education" required>
+                        <option value="">Select education level</option>
+                        <option value="high_school">High School or GED</option>
+                        <option value="some_college">Some College</option>
+                        <option value="associate">Associate Degree</option>
+                        <option value="bachelor">Bachelor's Degree</option>
+                        <option value="graduate">Graduate/Professional Degree</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="employment">Employment Status *</label>
+                    <select id="employment" name="employment" required>
+                        <option value="">Select employment status</option>
+                        <option value="employed_full_time">Employed Full Time</option>
+                        <option value="employed_part_time">Employed Part Time</option>
+                        <option value="unemployed">Unemployed</option>
+                        <option value="student">Student</option>
+                        <option value="retired">Retired</option>
+                        <option value="self_employed">Self-Employed</option>
+                        <option value="homemaker">Homemaker</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="occupation">Occupation *</label>
+                    <input type="text" id="occupation" name="occupation" required placeholder="Your occupation">
+                </div>
+                <div class="form-group">
+                    <label for="ethnicity">Race/Ethnicity *</label>
+                    <select id="ethnicity" name="ethnicity" required>
+                        <option value="">Select option</option>
+                        <option value="american_indian">American Indian or Alaska Native</option>
+                        <option value="asian">Asian</option>
+                        <option value="black">Black or African American</option>
+                        <option value="hispanic_latino">Hispanic or Latino</option>
+                        <option value="native_hawaiian">Native Hawaiian or Other Pacific Islander</option>
+                        <option value="white">White</option>
+                        <option value="multi_racial">Two or More Races</option>
+                        <option value="other">Other</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Gender *</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Select gender</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="nonbinary">Non-binary</option>
+                        <option value="prefer_not_to_say">Prefer not to say</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="availability">Preferred Time Availability</label>
+                    <select id="availability" name="availability">
+                        <option value="">Select preferred time</option>
+                        <option value="weekday-morning">Weekday Morning</option>
+                        <option value="weekday-afternoon">Weekday Afternoon</option>
+                        <option value="weekday-evening">Weekday Evening</option>
+                        <option value="anytime">Any Day/Any Time</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="experience">Previous Focus Group Experience</label>
+                    <select id="experience" name="experience">
+                        <option value="">Select experience level</option>
+                        <option value="none">No previous experience</option>
+                        <option value="1-2">1-2 focus groups</option>
+                        <option value="3-5">3-5 focus groups</option>
+                        <option value="5+">More than 5 focus groups</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="q1">What's something you're looking forward to in the next year?</label>
+                    <textarea id="q1" name="q1" rows="3" required placeholder="Share something you're looking forward to..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="q2">What's been the most meaningful part of your week so far?</label>
+                    <textarea id="q2" name="q2" rows="3" required placeholder="Share a meaningful experience from your week..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="q3">Tell us something new you discovered or learned recently.</label>
+                    <textarea id="q3" name="q3" rows="3" required placeholder="Share something new you've learned..."></textarea>
+                </div>
+                <div class="form-group">
+                    <div class="file-upload-note">If you are called upon to upload documents, you can do so here:</div>
+                    <input type="file" id="documents" name="documents" multiple>
+                </div>
+                <div class="form-group">
+                    <label for="comments">If you are here to sign up for a specific focus group, describe the location, date, and time</label>
+                    <textarea id="comments" name="comments" rows="3" placeholder="Details of the group you are signing up for"></textarea>
+                </div>
+                <div class="consent-group">
+                    <label>
+                        <input type="checkbox" id="consentMedia" name="consentMedia" required>
+                        I consent to the use of my name, image, likeness, and responses for research and promotional purposes by FocusFirst.
+                    </label>
+                    <label>
+                        <input type="checkbox" id="consentContact" name="consentContact" required>
+                        I consent to FocusFirst contacting me at the phone number and email address provided above.
+                    </label>
+                </div>
+                <button type="submit" class="submit-btn">Register for Focus Group</button>
+            </form>
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+    <script>
+        let locationData = {};
+        async function detectLocation() {
+            const locationStatus = document.getElementById('locationStatus');
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                locationData.ip = data.ip;
+                try {
+                    const locationResponse = await fetch(`https://ipapi.co/${data.ip}/json/`);
+                    const locationInfo = await locationResponse.json();
+                    if (locationInfo.city) {
+                        locationData = {
+                            ...locationData,
+                            city: locationInfo.city,
+                            region: locationInfo.region,
+                            country: locationInfo.country_name,
+                            timezone: locationInfo.timezone
+                        };
+                        locationStatus.innerHTML = `Detected: ${locationInfo.city}, ${locationInfo.region}, ${locationInfo.country_name}`;
+                        const cityField = document.getElementById('city');
+                        if (!cityField.value && locationInfo.city && locationInfo.region) {
+                            cityField.value = `${locationInfo.city}, ${locationInfo.region}`;
+                        }
+                    } else {
+                        locationStatus.innerHTML = 'Location detection unavailable - please enter your city and state manually';
+                    }
+                } catch (locError) {
+                    locationStatus.innerHTML = 'Location detection unavailable - please enter your city and state manually';
+                }
+            } catch (error) {
+                locationStatus.innerHTML = 'Location detection unavailable - please enter your city and state manually';
+            }
+        }
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            data.locationData = locationData;
+            data.submissionTime = new Date().toISOString();
+            const files = document.getElementById('documents').files;
+            if (files && files.length > 0) {
+                data.uploadedFiles = [];
+                for (let i = 0; i < files.length; i++) {
+                    data.uploadedFiles.push(files[i].name);
+                }
+            }
+            // Send to Google Apps Script endpoint
+            fetch('YOUR_GOOGLE_APPS_SCRIPT_URL', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(result => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `
+                    <h3>Registration Submitted Successfully!</h3>
+                    <p><strong>Thank you, ${data.fullName || ''}!</strong> Your registration has been received.</p>
+                    <details>
+                        <summary>Captured Data (for your reference)</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                    <p><em>You can modify this form to send data to your Google Sheet, email, or webhook endpoint.</em></p>
+                `;
+                resultDiv.style.display = 'block';
+            })
+            .catch(error => {
+                alert('Submission failed.');
+            });
+        });
+        detectLocation();
+    </script>
+</body>
+</html>
