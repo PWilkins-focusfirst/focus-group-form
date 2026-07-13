@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFirst — Check Printing</title>
+<style>
+  /* ============================================================
+     Embedded MICR E-13B font (magnetic ink char recognition).
+     Character map for this font:
+       A = Transit  (⑆)   B = Amount (⑇)
+       C = On-Us    (⑈)   D = Dash   (⑉)
+     ============================================================ */
+  @font-face {
+    font-family: "MICR";
+    src: url("data:font/truetype;charset=utf-8;base64,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") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  :root {
+    --brand: #2f6f4f;
+    --brand-dark: #24583f;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --line: #d9dee5;
+    --bg: #eef1f4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* ---------- Screen chrome ---------- */
+  .topbar {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: #fff;
+    padding: 18px 26px;
+  }
+  .topbar h1 { margin: 0; font-size: 1.5em; letter-spacing: .3px; }
+  .topbar p { margin: 4px 0 0; opacity: .9; font-size: .9em; }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 22px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(20,30,50,.06);
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .card > h2 {
+    margin: 0;
+    padding: 14px 18px;
+    font-size: 1.02em;
+    background: #f7f9fb;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card .body { padding: 16px 18px; }
+
+  label { display: block; font-size: .82em; font-weight: 600; color: #374151; margin: 12px 0 5px; }
+  label:first-child { margin-top: 0; }
+  input, select, textarea {
+    width: 100%; padding: 9px 11px; font-size: 14px;
+    border: 1.5px solid var(--line); border-radius: 7px; background: #fff;
+    font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .hint { font-size: .74em; color: var(--muted); margin-top: 4px; font-weight: 400; }
+  .warn { color: #b45309; }
+  .err  { color: #b91c1c; }
+  .ok   { color: var(--brand); }
+
+  button {
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    border: none; border-radius: 8px; padding: 11px 16px; cursor: pointer;
+  }
+  .btn-primary { background: var(--brand); color: #fff; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-ghost { background: #eef2f7; color: #334155; }
+  .btn-ghost:hover { background: #e2e8f0; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .btn-row button { flex: 1; min-width: 130px; }
+  details.adv { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 10px; }
+  details.adv summary { cursor: pointer; font-weight: 600; font-size: .85em; color: #475569; }
+
+  .banner {
+    background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+    padding: 10px 14px; border-radius: 8px; font-size: .82em; margin-bottom: 14px;
+  }
+
+  table.register { width: 100%; border-collapse: collapse; font-size: .82em; }
+  table.register th, table.register td { padding: 7px 9px; border-bottom: 1px solid var(--line); text-align: left; }
+  table.register th { background: #f7f9fb; font-size: .82em; }
+  table.register td.amt { text-align: right; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); font-size: .85em; padding: 10px 0; }
+
+  /* ---------- Preview scaling ---------- */
+  .preview-shell { background: #55606e; border-radius: 12px; padding: 20px; overflow: auto; }
+  .preview-scale { transform: scale(var(--preview-scale, .72)); transform-origin: top center; }
+
+  /* ============================================================
+     THE PAGE — physical 8.5in x 11in.  All check coordinates are
+     in inches so print output is dimensionally exact.
+     ============================================================ */
+  .page {
+    position: relative;
+    width: 8.5in; height: 11in;
+    background: #fff;
+    margin: 0 auto;
+    box-shadow: 0 0 0 1px #cbd2da;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #10151c;
+    overflow: hidden;
+  }
+  /* calibration nudge wrapper — shifts everything to match printer drift */
+  .calib {
+    position: absolute; inset: 0;
+    transform: translate(var(--offx, 0in), var(--offy, 0in));
+  }
+  .face { position: absolute; left: 0; width: 8.5in; }
+  .face.check { top: 0; height: var(--check-h, 3.5in); }
+  .face.stub1 { top: var(--check-h, 3.5in); height: var(--stub-h, 3.5in); }
+  .face.stub2 { top: calc(var(--check-h, 3.5in) + var(--stub-h, 3.5in)); height: var(--stub-h, 3.5in); }
+
+  .abs { position: absolute; }
+  .t-name { font-weight: 700; font-size: 12.5pt; letter-spacing: .2px; }
+  .t-sm { font-size: 8pt; line-height: 1.35; color: #232a33; }
+  .t-md { font-size: 9.5pt; }
+  .lbl { font-size: 6.5pt; letter-spacing: .6px; color: #55606c; text-transform: uppercase; }
+  .fieldline { border-bottom: 1px solid #2a2f36; }
+
+  /* --- check face fields --- */
+  .c-company { left: .32in; top: .24in; }
+  .c-bank    { left: .32in; top: .95in; }
+  .c-checkno { right: .40in; top: .26in; text-align: right; }
+  .c-checkno b { font-size: 13pt; }
+  .c-frac    { right: .40in; top: .74in; text-align: right; font-size: 7.5pt; color: #333; }
+  .c-date    { right: .40in; top: 1.28in; width: 2.4in; }
+  .c-date .fieldline { display: inline-block; width: 1.55in; text-align: center; }
+  .c-payline { left: .32in; top: 1.72in; width: 7.86in; }
+  .c-payline .payto { font-size: 7pt; text-transform: uppercase; letter-spacing: .4px; color: #333; width: .95in; display: inline-block; vertical-align: middle; line-height: 1.05; }
+  .c-payname { display: inline-block; width: 5.0in; border-bottom: 1px solid #2a2f36; font-size: 11pt; padding: 0 6px 2px; vertical-align: middle; min-height: .24in; }
+  .c-amtbox  { position: absolute; right: 0; top: -.04in; border: 1.6px solid #2a2f36; padding: 3px 10px; font-size: 12pt; font-weight: 700; min-width: 1.35in; text-align: right; }
+  .c-amtbox .dol { font-weight: 700; margin-right: 4px; }
+  .c-words   { left: .32in; top: 2.24in; width: 7.86in; }
+  .c-words .txt { display: inline-block; width: 6.85in; border-bottom: 1px solid #2a2f36; font-size: 10.5pt; padding: 0 4px 2px; white-space: nowrap; overflow: hidden; }
+  .c-words .dollars { font-size: 8pt; letter-spacing: .5px; margin-left: 6px; }
+  .c-memo    { left: .32in; top: 2.60in; width: 3.4in; }
+  .c-memo .fieldline { display: inline-block; width: 2.7in; }
+  .c-sig     { right: .40in; top: 2.38in; width: 3.1in; text-align: center; }
+  .c-sig .sigline { border-bottom: 1px solid #2a2f36; height: .30in; }
+  .c-sig .lbl { margin-top: 3px; }
+  .c-void    { right: .40in; top: 2.22in; font-size: 6.5pt; color: #55606c; text-align: right; }
+
+  /* MICR line — sits in the clear band near the bottom of the check */
+  .micr {
+    position: absolute; left: var(--micr-x, .70in); top: var(--micr-y, 3.14in);
+    font-family: "MICR", monospace;
+    font-size: var(--micr-size, 15pt);
+    letter-spacing: var(--micr-space, 0px);
+    color: #000; white-space: nowrap;
+  }
+
+  /* --- stub fields --- */
+  .s-pad { position: absolute; left: .4in; right: .4in; top: .3in; }
+  .s-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1.5px solid #333; padding-bottom: 4px; }
+  .s-head .co { font-weight: 700; font-size: 10.5pt; }
+  .s-head .meta { font-size: 8.5pt; text-align: right; }
+  .s-row { display: flex; justify-content: space-between; font-size: 9pt; margin-top: 7px; }
+  .s-row .k { color: #55606c; }
+  .s-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 8.5pt; }
+  .s-table th, .s-table td { border-bottom: 1px solid #cfd6de; padding: 4px 4px; text-align: left; }
+  .s-table th { font-size: 7pt; text-transform: uppercase; letter-spacing: .4px; color: #55606c; }
+  .s-table td.amt, .s-table th.amt { text-align: right; }
+  .s-total { display: flex; justify-content: flex-end; gap: 18px; font-size: 9.5pt; font-weight: 700; margin-top: 8px; padding-top: 6px; border-top: 1.5px solid #333; }
+
+  /* --- alignment guides (test print) --- */
+  .page.guides .face { outline: 1px dashed #c0392b; }
+  .page.guides .face::before {
+    content: attr(data-label); position: absolute; left: 3px; top: 2px;
+    font-size: 7pt; color: #c0392b; font-family: monospace;
+  }
+  .page.guides .perf { position: absolute; left: 0; width: 8.5in; border-top: 1px dashed #2980b9; }
+  .page.guides .clearband {
+    position: absolute; left: 0; width: 8.5in; height: .625in;
+    background: rgba(41,128,185,.08); border-top: 1px dotted #2980b9; border-bottom: 1px dotted #2980b9;
+  }
+  .page:not(.guides) .perf, .page:not(.guides) .clearband { display: none; }
+
+  #printRoot { display: none; }
+
+  /* ============================================================ */
+  @media print {
+    @page { size: 8.5in 11in; margin: 0; }
+    html, body { background: #fff; margin: 0; }
+    .app { display: none !important; }
+    #printRoot { display: block !important; }
+    .page { box-shadow: none; margin: 0; }
+    .preview-scale { transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <h1>FocusFirst — Check Printing</h1>
+    <p>Office Depot B 7200 business voucher checks (item 637‑515) · South State Bank</p>
+  </div>
+
+  <div class="wrap">
+    <!-- ================= LEFT: controls ================= -->
+    <div>
+      <div class="card">
+        <h2>Account &amp; Bank Setup <span id="cfgState" class="hint"></span></h2>
+        <div class="body">
+          <div class="banner">
+            These are <b>blank</b> check sheets, so the app prints the full check face including the
+            MICR line. Banks technically require <b>magnetic MICR toner</b> for reliable machine reading —
+            standard toner usually clears via image processing, but confirm with South State.
+          </div>
+
+          <label>Company / Account holder name</label>
+          <input id="cfg_company" placeholder="FocusFirst LLC">
+          <label>Address line 1</label>
+          <input id="cfg_addr1" placeholder="123 Main St">
+          <div class="row">
+            <div>
+              <label>Address line 2</label>
+              <input id="cfg_addr2" placeholder="Birmingham, AL 35203">
+            </div>
+            <div>
+              <label>Phone (optional)</label>
+              <input id="cfg_phone" placeholder="(205) 555-0100">
+            </div>
+          </div>
+
+          <label>Bank name</label>
+          <input id="cfg_bank" value="South State Bank">
+          <label>Bank city, state (printed under bank name)</label>
+          <input id="cfg_bankcity" placeholder="Winter Haven, FL">
+
+          <div class="row">
+            <div>
+              <label>Routing number (9 digits)</label>
+              <input id="cfg_routing" inputmode="numeric" maxlength="9" placeholder="063114030">
+              <div id="routingMsg" class="hint"></div>
+            </div>
+            <div>
+              <label>Account number</label>
+              <input id="cfg_account" inputmode="numeric" placeholder="0000000000">
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Fractional routing (top‑right, optional)</label>
+              <input id="cfg_fraction" placeholder="63-114/670">
+            </div>
+            <div>
+              <label>Next check number</label>
+              <input id="cfg_nextcheck" inputmode="numeric" value="1001">
+            </div>
+          </div>
+
+          <details class="adv">
+            <summary>Advanced: stock dimensions, calibration &amp; MICR</summary>
+
+            <div class="hint" style="margin-top:10px">
+              <b>Perforation layout</b> — height of the check portion (top) and each voucher stub.
+              Office Depot 637‑515 default is 3.5&quot; each.
+            </div>
+            <div class="row3">
+              <div><label>Check height (in)</label><input id="cfg_checkh" value="3.5"></div>
+              <div><label>Stub height (in)</label><input id="cfg_stubh" value="3.5"></div>
+              <div><label>Preview zoom</label><input id="cfg_zoom" value="0.72"></div>
+            </div>
+
+            <div class="hint" style="margin-top:12px">
+              <b>Printer calibration</b> — if everything prints shifted, nudge the whole page.
+              Positive X = right, positive Y = down. Print the alignment guide, hold it over a real
+              check against a light, and adjust.
+            </div>
+            <div class="row">
+              <div><label>Offset X (in)</label><input id="cfg_offx" value="0"></div>
+              <div><label>Offset Y (in)</label><input id="cfg_offy" value="0"></div>
+            </div>
+
+            <div class="hint" style="margin-top:12px">
+              <b>MICR line</b> — position &amp; size of the magnetic number line. It must sit inside the
+              clear band (bottom 0.625&quot; of the check). Leave ~0.6&quot; blank at the right edge for the
+              bank's amount field.
+            </div>
+            <div class="row">
+              <div><label>MICR X (in)</label><input id="cfg_micrx" value="0.70"></div>
+              <div><label>MICR Y (in)</label><input id="cfg_micry" value="3.14"></div>
+            </div>
+            <div class="row">
+              <div><label>MICR size (pt)</label><input id="cfg_micrsize" value="15"></div>
+              <div><label>MICR letter‑spacing (px)</label><input id="cfg_micrspace" value="0"></div>
+            </div>
+            <div class="hint" style="margin-top:6px">MICR preview (E‑13B):
+              <span id="micrPreview" style="font-family:'MICR',monospace; font-size:15pt;"></span>
+            </div>
+          </details>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="saveCfg">Save setup</button>
+            <button class="btn-ghost" id="guideBtn">Print alignment guide</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= RIGHT: write check + preview ================= -->
+    <div>
+      <div class="card">
+        <h2>Write a Check</h2>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label>Check number</label>
+              <input id="chk_no" inputmode="numeric">
+            </div>
+            <div>
+              <label>Date</label>
+              <input id="chk_date" type="date">
+            </div>
+          </div>
+          <label>Pay to the order of</label>
+          <input id="chk_payee" placeholder="Payee name">
+          <div class="row">
+            <div>
+              <label>Amount (USD)</label>
+              <input id="chk_amount" inputmode="decimal" placeholder="0.00">
+            </div>
+            <div>
+              <label>Memo / For</label>
+              <input id="chk_memo" placeholder="Invoice #, purpose">
+            </div>
+          </div>
+          <label>Voucher stub detail (one line per row: <span class="hint">description | amount — amount optional</span>)</label>
+          <textarea id="chk_detail" rows="3" placeholder="Consulting services — May | 1200.00&#10;Reimbursed travel | 134.56"></textarea>
+
+          <div class="btn-row">
+            <button class="btn-primary" id="printBtn">Record &amp; Print check</button>
+            <button class="btn-ghost" id="printOnly">Print (don't record)</button>
+          </div>
+          <div id="writeMsg" class="hint"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Print Preview
+          <label style="display:inline-flex;align-items:center;gap:6px;font-weight:600;margin:0;font-size:.8em">
+            <input type="checkbox" id="showGuides" style="width:auto"> show guides
+          </label>
+        </h2>
+        <div class="body" style="padding:0">
+          <div class="preview-shell">
+            <div class="preview-scale" id="previewScale">
+              <!-- live clone of the print page is injected here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Check Register
+          <span>
+            <button class="btn-ghost" id="exportCsv" style="padding:6px 12px;font-size:.8em">Export CSV</button>
+            <button class="btn-ghost" id="clearReg" style="padding:6px 12px;font-size:.8em">Clear</button>
+          </span>
+        </h2>
+        <div class="body">
+          <table class="register">
+            <thead><tr><th>#</th><th>Date</th><th>Payee</th><th>Memo</th><th class="amt">Amount</th></tr></thead>
+            <tbody id="regBody"></tbody>
+          </table>
+          <div id="regEmpty" class="empty">No checks recorded yet.</div>
+          <div id="regTotal" class="hint" style="text-align:right;margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PRINT ROOT (also cloned into preview) ================= -->
+<div id="printRoot">
+  <div class="page" id="thePage">
+    <div class="clearband" id="clearband"></div>
+    <div class="perf" id="perf1"></div>
+    <div class="perf" id="perf2"></div>
+
+    <div class="calib">
+      <!-- ===== CHECK ===== -->
+      <div class="face check" data-label="CHECK (top 3.5in)">
+        <div class="abs c-company">
+          <div class="t-name" id="p_company"></div>
+          <div class="t-sm" id="p_addr1"></div>
+          <div class="t-sm" id="p_addr2"></div>
+          <div class="t-sm" id="p_phone"></div>
+        </div>
+        <div class="abs c-bank">
+          <div class="t-md" id="p_bank" style="font-weight:600"></div>
+          <div class="t-sm" id="p_bankcity"></div>
+        </div>
+        <div class="abs c-checkno">
+          <div class="lbl">No.</div>
+          <b id="p_checkno"></b>
+        </div>
+        <div class="abs c-frac" id="p_frac"></div>
+        <div class="abs c-date">
+          <span class="lbl">Date</span>
+          <span class="fieldline" id="p_date"></span>
+        </div>
+        <div class="abs c-payline">
+          <span class="payto">Pay to the<br>order of</span>
+          <span class="c-payname" id="p_payee"></span>
+          <span class="c-amtbox"><span class="dol">$</span><span id="p_amtnum"></span></span>
+        </div>
+        <div class="abs c-words">
+          <span class="txt" id="p_words"></span><span class="dollars">DOLLARS</span>
+        </div>
+        <div class="abs c-memo">
+          <span class="lbl">Memo</span>
+          <span class="fieldline" id="p_memo"></span>
+        </div>
+        <div class="abs c-void">VOID AFTER 90 DAYS</div>
+        <div class="abs c-sig">
+          <div class="sigline"></div>
+          <div class="lbl">Authorized Signature</div>
+        </div>
+        <div class="micr" id="p_micr"></div>
+      </div>
+
+      <!-- ===== STUB 1 ===== -->
+      <div class="face stub1" data-label="STUB 1" id="stubEl1"></div>
+      <!-- ===== STUB 2 ===== -->
+      <div class="face stub2" data-label="STUB 2" id="stubEl2"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const LS_CFG = "ff_check_config_v1";
+const LS_REG = "ff_check_register_v1";
+
+/* ---------- config ---------- */
+const CFG_FIELDS = {
+  company:"cfg_company", addr1:"cfg_addr1", addr2:"cfg_addr2", phone:"cfg_phone",
+  bank:"cfg_bank", bankcity:"cfg_bankcity", routing:"cfg_routing", account:"cfg_account",
+  fraction:"cfg_fraction", nextcheck:"cfg_nextcheck",
+  checkh:"cfg_checkh", stubh:"cfg_stubh", zoom:"cfg_zoom",
+  offx:"cfg_offx", offy:"cfg_offy",
+  micrx:"cfg_micrx", micry:"cfg_micry", micrsize:"cfg_micrsize", micrspace:"cfg_micrspace"
+};
+const CFG_DEFAULTS = {
+  company:"FocusFirst LLC", addr1:"", addr2:"", phone:"",
+  bank:"South State Bank", bankcity:"", routing:"", account:"", fraction:"", nextcheck:"1001",
+  checkh:"3.5", stubh:"3.5", zoom:"0.72", offx:"0", offy:"0",
+  micrx:"0.70", micry:"3.14", micrsize:"15", micrspace:"0"
+};
+
+function loadCfg() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(LS_CFG)) || {}; } catch (e) {}
+  const cfg = Object.assign({}, CFG_DEFAULTS, saved);
+  for (const k in CFG_FIELDS) if ($(CFG_FIELDS[k])) $(CFG_FIELDS[k]).value = cfg[k] ?? "";
+  return cfg;
+}
+function readCfg() {
+  const cfg = {};
+  for (const k in CFG_FIELDS) cfg[k] = $(CFG_FIELDS[k]).value.trim();
+  return cfg;
+}
+function saveCfg() {
+  const cfg = readCfg();
+  localStorage.setItem(LS_CFG, JSON.stringify(cfg));
+  $("cfgState").textContent = "saved ✓";
+  $("cfgState").className = "hint ok";
+  setTimeout(() => { $("cfgState").textContent = ""; }, 2500);
+  syncNextCheckIntoWriter();
+  render();
+}
+
+/* ---------- ABA routing checksum ---------- */
+function routingValid(r) {
+  if (!/^\d{9}$/.test(r)) return null;
+  const d = r.split("").map(Number);
+  const sum = 3*(d[0]+d[3]+d[6]) + 7*(d[1]+d[4]+d[7]) + (d[2]+d[5]+d[8]);
+  return sum % 10 === 0;
+}
+function checkRouting() {
+  const r = $("cfg_routing").value.trim();
+  const el = $("routingMsg");
+  if (!r) { el.textContent = ""; return; }
+  const v = routingValid(r);
+  if (v === null) { el.textContent = "Must be 9 digits."; el.className = "hint warn"; }
+  else if (v)     { el.textContent = "Valid ABA checksum ✓"; el.className = "hint ok"; }
+  else            { el.textContent = "Checksum fails — double‑check the number."; el.className = "hint err"; }
+}
+
+/* ---------- number → words ---------- */
+const ONES = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+  "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+const TENS = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+function threeDigits(n) {
+  let s = "";
+  if (n >= 100) { s += ONES[Math.floor(n/100)] + " Hundred"; n %= 100; if (n) s += " "; }
+  if (n >= 20) { s += TENS[Math.floor(n/10)]; if (n%10) s += "-" + ONES[n%10]; }
+  else if (n > 0) { s += ONES[n]; }
+  return s;
+}
+function amountToWords(dollars) {
+  if (dollars === 0) return "Zero";
+  const groups = ["", " Thousand", " Million", " Billion"];
+  let parts = [], i = 0, n = dollars;
+  while (n > 0 && i < groups.length) {
+    const chunk = n % 1000;
+    if (chunk) parts.unshift(threeDigits(chunk) + groups[i]);
+    n = Math.floor(n/1000); i++;
+  }
+  return parts.join(" ").trim();
+}
+function centsWords(amountStr) {
+  const num = parseFloat(amountStr);
+  if (isNaN(num) || num < 0) return null;
+  const cents = Math.round((num - Math.floor(num)) * 100);
+  const dollars = Math.floor(num);
+  const words = amountToWords(dollars) + " and " + String(cents).padStart(2,"0") + "/100";
+  return { num, words, cents, dollars };
+}
+function fillWords(words) {
+  // anti-tamper fill to a target length
+  const target = 90;
+  let s = words + " ";
+  while (s.length < target) s += "*";
+  return s;
+}
+
+/* ---------- MICR string ---------- */
+// A=Transit(⑆)  B=Amount(⑇)  C=On-Us(⑈)  D=Dash(⑉)
+function buildMicr(cfg, checkNo) {
+  const routing = (cfg.routing || "").replace(/\D/g, "");
+  const account = (cfg.account || "").replace(/[^0-9-]/g, "");
+  const cn = String(checkNo || "").replace(/\D/g, "");
+  const aux = cn ? ("C" + cn + "C") : "";
+  const transit = routing ? ("A" + routing + "A") : "A_________A";
+  const onus = account ? (account + "C") : "__________C";
+  return [aux, transit, onus].filter(Boolean).join("  ");
+}
+
+/* ---------- date formatting ---------- */
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y,m,d] = iso.split("-");
+  return `${m}/${d}/${y}`;
+}
+
+/* ---------- stub rendering ---------- */
+function parseDetail(text) {
+  return text.split("\n").map(l => l.trim()).filter(Boolean).map(line => {
+    const bar = line.lastIndexOf("|");
+    if (bar === -1) return { desc: line, amt: "" };
+    const desc = line.slice(0, bar).trim();
+    const amtRaw = line.slice(bar+1).trim().replace(/[^0-9.\-]/g, "");
+    const amt = amtRaw ? parseFloat(amtRaw) : NaN;
+    return { desc, amt: isNaN(amt) ? "" : amt };
+  });
+}
+function money(n) { return "$" + Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function stubHTML(cfg, data) {
+  const rows = data.detail.length ? data.detail : [{desc: data.memo || "", amt: data.amountNum || ""}];
+  let bodyRows = rows.map(r =>
+    `<tr><td>${esc(r.desc)}</td><td class="amt">${r.amt!==""?money(r.amt):""}</td></tr>`).join("");
+  // pad to at least 4 rows for a clean look
+  for (let i = rows.length; i < 4; i++) bodyRows += `<tr><td>&nbsp;</td><td class="amt"></td></tr>`;
+  const total = data.amountNum !== "" ? money(data.amountNum) : "";
+  return `
+    <div class="s-pad">
+      <div class="s-head">
+        <span class="co">${esc(cfg.company || "")}</span>
+        <span class="meta">Check No. <b>${esc(String(data.checkNo))}</b><br>${esc(data.dateFmt)}</span>
+      </div>
+      <div class="s-row"><span><span class="k">Pay to:</span> <b>${esc(data.payee || "")}</b></span>
+        <span><span class="k">Amount:</span> <b>${total}</b></span></div>
+      <div class="s-row"><span class="k">Memo: ${esc(data.memo || "")}</span></div>
+      <table class="s-table">
+        <thead><tr><th>Description</th><th class="amt">Amount</th></tr></thead>
+        <tbody>${bodyRows}</tbody>
+      </table>
+      <div class="s-total"><span>Total</span><span>${total}</span></div>
+    </div>`;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- main render ---------- */
+function currentData(cfg) {
+  const amtStr = $("chk_amount").value.trim();
+  const cw = centsWords(amtStr);
+  const detail = parseDetail($("chk_detail").value);
+  return {
+    checkNo: $("chk_no").value.trim() || cfg.nextcheck || "",
+    dateISO: $("chk_date").value,
+    dateFmt: fmtDate($("chk_date").value),
+    payee: $("chk_payee").value.trim(),
+    amountNum: cw ? cw.num.toFixed(2) : "",
+    amountRaw: amtStr,
+    words: cw ? cw.words : "",
+    memo: $("chk_memo").value.trim(),
+    detail
+  };
+}
+
+function render() {
+  const cfg = readCfg();
+  const data = currentData(cfg);
+  const page = $("thePage");
+
+  // page-level CSS vars
+  page.style.setProperty("--check-h", (parseFloat(cfg.checkh)||3.5) + "in");
+  page.style.setProperty("--stub-h", (parseFloat(cfg.stubh)||3.5) + "in");
+  page.style.setProperty("--offx", (parseFloat(cfg.offx)||0) + "in");
+  page.style.setProperty("--offy", (parseFloat(cfg.offy)||0) + "in");
+  page.style.setProperty("--micr-x", (parseFloat(cfg.micrx)||0.7) + "in");
+  page.style.setProperty("--micr-y", (parseFloat(cfg.micry)||3.14) + "in");
+  page.style.setProperty("--micr-size", (parseFloat(cfg.micrsize)||15) + "pt");
+  page.style.setProperty("--micr-space", (parseFloat(cfg.micrspace)||0) + "px");
+
+  // guide lines position
+  const ch = parseFloat(cfg.checkh)||3.5, sh = parseFloat(cfg.stubh)||3.5;
+  $("perf1").style.top = ch + "in";
+  $("perf2").style.top = (ch + sh) + "in";
+  $("clearband").style.top = (ch - 0.625) + "in";
+
+  // check face
+  $("p_company").textContent = cfg.company || "";
+  $("p_addr1").textContent = cfg.addr1 || "";
+  $("p_addr2").textContent = cfg.addr2 || "";
+  $("p_phone").textContent = cfg.phone || "";
+  $("p_bank").textContent = cfg.bank || "";
+  $("p_bankcity").textContent = cfg.bankcity || "";
+  $("p_checkno").textContent = data.checkNo || "";
+  $("p_frac").textContent = cfg.fraction || "";
+  $("p_date").textContent = data.dateFmt || "";
+  $("p_payee").textContent = data.payee || "";
+  $("p_amtnum").textContent = data.amountNum ? Number(data.amountNum).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) : "";
+  $("p_words").textContent = data.words ? fillWords(data.words) : "";
+  $("p_memo").textContent = data.memo || "";
+  $("p_micr").textContent = buildMicr(cfg, data.checkNo);
+
+  // stubs
+  $("stubEl1").innerHTML = stubHTML(cfg, data);
+  $("stubEl2").innerHTML = stubHTML(cfg, data);
+
+  // guides toggle
+  page.classList.toggle("guides", $("showGuides").checked);
+
+  // MICR small preview
+  $("micrPreview").textContent = buildMicr(cfg, data.checkNo);
+  $("micrPreview").style.fontSize = (parseFloat(cfg.micrsize)||15) + "pt";
+
+  // preview: clone the page, scale it
+  const scale = parseFloat(cfg.zoom) || 0.72;
+  const shell = $("previewScale");
+  shell.style.setProperty("--preview-scale", scale);
+  shell.innerHTML = "";
+  // Clone for preview, but strip all ids so getElementById always targets the
+  // real print page (duplicate ids would make later renders update the clone).
+  const clone = page.cloneNode(true);
+  clone.removeAttribute("id");
+  clone.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
+  shell.appendChild(clone);
+}
+
+/* ---------- register ---------- */
+function loadReg() { try { return JSON.parse(localStorage.getItem(LS_REG)) || []; } catch(e){ return []; } }
+function saveReg(r) { localStorage.setItem(LS_REG, JSON.stringify(r)); }
+function renderReg() {
+  const reg = loadReg();
+  const body = $("regBody");
+  body.innerHTML = "";
+  let total = 0;
+  reg.slice().reverse().forEach(e => {
+    total += Number(e.amount) || 0;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${esc(e.checkNo)}</td><td>${esc(e.dateFmt)}</td><td>${esc(e.payee)}</td>`
+      + `<td>${esc(e.memo)}</td><td class="amt">${e.amount!==""?money(e.amount):""}</td>`;
+    body.appendChild(tr);
+  });
+  $("regEmpty").style.display = reg.length ? "none" : "block";
+  $("regTotal").textContent = reg.length ? `${reg.length} check(s) · total ${money(total)}` : "";
+}
+function recordCheck(cfg, data) {
+  const reg = loadReg();
+  reg.push({
+    checkNo: data.checkNo, dateISO: data.dateISO, dateFmt: data.dateFmt,
+    payee: data.payee, memo: data.memo, amount: data.amountNum,
+    ts: new Date().toISOString()
+  });
+  saveReg(reg);
+  renderReg();
+}
+function exportCsv() {
+  const reg = loadReg();
+  if (!reg.length) return;
+  const head = ["CheckNo","Date","Payee","Memo","Amount"];
+  const rows = reg.map(e => [e.checkNo, e.dateFmt, e.payee, e.memo, e.amount]
+    .map(v => `"${String(v??"").replace(/"/g,'""')}"`).join(","));
+  const blob = new Blob([head.join(",")+"\n"+rows.join("\n")], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "focusfirst-check-register.csv";
+  a.click();
+}
+
+/* ---------- writer helpers ---------- */
+function syncNextCheckIntoWriter() {
+  const cfg = readCfg();
+  if (!$("chk_no").value.trim()) $("chk_no").value = cfg.nextcheck || "";
+}
+function validateBeforePrint() {
+  const cfg = readCfg();
+  const msgs = [];
+  if (!cfg.routing || routingValid(cfg.routing) === null) msgs.push("routing number");
+  if (!cfg.account) msgs.push("account number");
+  if (!cfg.company) msgs.push("company name");
+  const data = currentData(cfg);
+  if (!data.payee) msgs.push("payee");
+  if (data.amountNum === "") msgs.push("a valid amount");
+  return msgs;
+}
+
+/* ---------- actions ---------- */
+function doPrintGuide() {
+  $("showGuides").checked = true;
+  render();
+  window.print();
+}
+function afterPrintRestore() {
+  // restore guide checkbox visual only after print dialog
+}
+function printCheck(recordIt) {
+  const missing = validateBeforePrint();
+  const msg = $("writeMsg");
+  if (missing.length) {
+    msg.textContent = "Please provide: " + missing.join(", ") + ".";
+    msg.className = "hint err";
+    return;
+  }
+  const cfg = readCfg();
+  const data = currentData(cfg);
+  // ensure guides off for a real check
+  const wasGuides = $("showGuides").checked;
+  $("showGuides").checked = false;
+  render();
+
+  if (recordIt) {
+    recordCheck(cfg, data);
+    // advance next check number
+    const next = (parseInt(data.checkNo, 10) || parseInt(cfg.nextcheck,10) || 1000) + 1;
+    $("cfg_nextcheck").value = String(next);
+    saveCfg();
+    $("chk_no").value = "";           // will repopulate from nextcheck
+    syncNextCheckIntoWriter();
+    msg.textContent = `Recorded check #${data.checkNo} to ${data.payee}. Next check: ${next}.`;
+    msg.className = "hint ok";
+  } else {
+    msg.textContent = "Printing (not recorded).";
+    msg.className = "hint";
+  }
+  render();
+  window.print();
+  $("showGuides").checked = wasGuides;
+  render();
+}
+
+/* ---------- init ---------- */
+function init() {
+  loadCfg();
+  checkRouting();
+  // default date = today (local)
+  const now = new Date();
+  const iso = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $("chk_date").value = iso;
+  syncNextCheckIntoWriter();
+
+  // wire inputs → live render
+  Object.values(CFG_FIELDS).forEach(id => $(id) && $(id).addEventListener("input", () => {
+    if (id === "cfg_routing") checkRouting();
+    render();
+  }));
+  ["chk_no","chk_date","chk_payee","chk_amount","chk_memo","chk_detail"].forEach(id =>
+    $(id).addEventListener("input", render));
+  $("showGuides").addEventListener("change", render);
+
+  $("saveCfg").addEventListener("click", saveCfg);
+  $("guideBtn").addEventListener("click", doPrintGuide);
+  $("printBtn").addEventListener("click", () => printCheck(true));
+  $("printOnly").addEventListener("click", () => printCheck(false));
+  $("exportCsv").addEventListener("click", exportCsv);
+  $("clearReg").addEventListener("click", () => {
+    if (confirm("Clear the entire check register? This cannot be undone.")) {
+      localStorage.removeItem(LS_REG); renderReg();
+    }
+  });
+
+  renderReg();
+  render();
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
