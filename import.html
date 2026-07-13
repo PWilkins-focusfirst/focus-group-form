@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFirst — Import Transactions</title>
+<style>
+  :root { --brand:#2f6f4f; --brand-dark:#24583f; --ink:#1f2937; --muted:#6b7280; --line:#d9dee5; --bg:#eef1f4; --in:#1d7a4c; --out:#b4342b; --xfer:#7c5cbf; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); color:var(--ink); }
+  .topbar { background:linear-gradient(135deg,var(--brand),var(--brand-dark)); color:#fff; padding:16px 26px; }
+  .topbar a.home { color:#fff; opacity:.85; text-decoration:none; font-size:.85em; }
+  .topbar h1 { margin:6px 0 0; font-size:1.5em; }
+  .topbar p { margin:4px 0 0; opacity:.9; font-size:.88em; }
+  .wrap { max-width:1100px; margin:0 auto; padding:22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 6px 18px rgba(20,30,50,.06); margin-bottom:18px; overflow:hidden; }
+  .card > h2 { margin:0; padding:13px 18px; font-size:1em; background:#f7f9fb; border-bottom:1px solid var(--line); }
+  .card .body { padding:16px 18px; }
+  label { display:block; font-size:.8em; font-weight:600; color:#374151; margin:10px 0 5px; }
+  input, select, textarea { width:100%; padding:9px 11px; font-size:14px; border:1.5px solid var(--line); border-radius:7px; background:#fff; font-family:inherit; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--brand); }
+  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media(max-width:900px){ .grid{ grid-template-columns:repeat(2,1fr);} }
+  .grid .wide { grid-column:span 2; }
+  button { font-family:inherit; font-size:14px; font-weight:600; border:none; border-radius:8px; padding:10px 15px; cursor:pointer; }
+  .btn-primary { background:var(--brand); color:#fff; } .btn-primary:hover{ background:var(--brand-dark); }
+  .btn-ghost { background:#eef2f7; color:#334155; } .btn-ghost:hover{ background:#e2e8f0; }
+  .btn-primary:disabled { background:#9db3a7; cursor:not-allowed; }
+  .hint { font-size:.76em; color:var(--muted); margin-top:4px; font-weight:400; }
+  .steps { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:#eef2f7; color:#475569; border-radius:20px; padding:5px 12px; font-size:.8em; font-weight:600; }
+  .banner { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:10px 14px; border-radius:8px; font-size:.82em; margin-bottom:14px; }
+  .banner.info { background:#eef5ff; border-color:#bfdbfe; color:#1e40af; }
+  table.prev { width:100%; border-collapse:collapse; font-size:.82em; }
+  table.prev th, table.prev td { padding:6px 8px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; }
+  table.prev th { background:#f7f9fb; position:sticky; top:0; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .pill { display:inline-block; font-size:.72em; font-weight:700; border-radius:20px; padding:2px 8px; }
+  .pill.in{background:#e4f5ec;color:var(--in);} .pill.out{background:#fbeae8;color:var(--out);} .pill.transfer{background:#efe9fb;color:var(--xfer);}
+  .dupflag { color:var(--muted); font-size:.72em; }
+  .row.dup td { opacity:.5; }
+  .tablewrap { max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+  .counts { display:flex; gap:16px; flex-wrap:wrap; margin:12px 0; font-size:.9em; }
+  .counts b { font-size:1.15em; }
+  .hidden { display:none; }
+  .raw { font-family:ui-monospace,Menlo,monospace; font-size:.75em; color:#64748b; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="home" href="index.html">← FocusFirst home</a>
+    <h1>Import Transactions</h1>
+    <p>Bring in CSV exports from Square, Meta, Tremendous, South State, Amex — into your ledger</p>
+  </div>
+
+  <div class="wrap">
+    <div class="banner info">
+      <b>How this avoids double-counting:</b> revenue is counted from your <b>South State deposits</b>.
+      Square is imported as <b>transfers</b> (money you already count when it lands in the bank).
+      Amex charges, Meta, Tremendous and bank checks/ACH are <b>expenses</b>; the bank→Amex payoff and
+      Amex payments are auto-marked <b>transfers</b>. Transfers never affect the P&amp;L. You review
+      everything before it's saved.
+    </div>
+
+    <!-- STEP 1: source + file -->
+    <div class="card">
+      <h2>1 · Choose source &amp; file</h2>
+      <div class="body">
+        <div class="grid">
+          <div class="wide">
+            <label>Source</label>
+            <select id="preset"></select>
+            <div class="hint" id="presetHint"></div>
+          </div>
+          <div class="wide">
+            <label>CSV file</label>
+            <input type="file" id="file" accept=".csv,text/csv">
+          </div>
+        </div>
+        <div id="headerRowWrap" class="hidden">
+          <label>Header is on row #<span id="hrNum">1</span>
+            <input type="range" id="headerRow" min="1" max="10" value="1" style="max-width:220px">
+          </label>
+          <div class="raw" id="rawPeek"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: mapping -->
+    <div class="card hidden" id="mapCard">
+      <h2>2 · Map columns</h2>
+      <div class="body">
+        <div class="grid">
+          <div>
+            <label>Date column</label>
+            <select id="m_date"></select>
+          </div>
+          <div>
+            <label>Amounts are in…</label>
+            <select id="m_mode">
+              <option value="single">One amount column</option>
+              <option value="dc">Separate Debit / Credit columns</option>
+            </select>
+          </div>
+          <div id="w_single">
+            <label>Amount column</label>
+            <select id="m_amount"></select>
+          </div>
+          <div id="w_sign">
+            <label>Sign meaning</label>
+            <select id="m_sign">
+              <option value="signed">+ is money in, − is money out</option>
+              <option value="positive-in">All positive = money in</option>
+              <option value="positive-out">All positive = money out</option>
+            </select>
+          </div>
+          <div id="w_debit" class="hidden">
+            <label>Debit (out) column</label>
+            <select id="m_debit"></select>
+          </div>
+          <div id="w_credit" class="hidden">
+            <label>Credit (in) column</label>
+            <select id="m_credit"></select>
+          </div>
+          <div>
+            <label>Description column</label>
+            <select id="m_desc"></select>
+          </div>
+          <div>
+            <label>Memo column (optional)</label>
+            <select id="m_memo"></select>
+          </div>
+          <div>
+            <label>Treat rows as</label>
+            <select id="m_force">
+              <option value="auto">Auto (from sign)</option>
+              <option value="income">Money in</option>
+              <option value="expense">Money out</option>
+              <option value="transfer">Transfer (exclude from P&amp;L)</option>
+            </select>
+          </div>
+          <div>
+            <label>Default category</label>
+            <input id="m_category" list="catlist"><datalist id="catlist"></datalist>
+          </div>
+          <div>
+            <label>Method</label>
+            <input id="m_method">
+          </div>
+          <div>
+            <label>Account / source tag</label>
+            <input id="m_account">
+          </div>
+        </div>
+
+        <label style="margin-top:16px">Category rules — one per line: <span class="hint" style="display:inline">keyword =&gt; Category</span> (matched in description; a category of <b>Transfer</b> excludes it from P&amp;L)</label>
+        <textarea id="rules" rows="4" placeholder="AMEX EPAYMENT => Transfer&#10;AMERICAN EXPRESS => Transfer&#10;UBER => Travel&#10;ZOOM => Software / subscriptions"></textarea>
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+          <button class="btn-primary" id="previewBtn">Preview import</button>
+          <button class="btn-ghost" id="saveRules">Save rules</button>
+          <span class="hint" id="mapMsg" style="align-self:center"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: preview -->
+    <div class="card hidden" id="prevCard">
+      <h2>3 · Review &amp; import</h2>
+      <div class="body">
+        <div class="counts">
+          <span>New: <b id="cNew">0</b></span>
+          <span>Duplicates skipped: <b id="cDup">0</b></span>
+          <span>Unreadable rows: <b id="cBad">0</b></span>
+          <span>Transfers (excluded from P&amp;L): <b id="cXfer">0</b></span>
+        </div>
+        <div class="tablewrap">
+          <table class="prev">
+            <thead><tr><th>Date</th><th>Dir</th><th>Amount</th><th>Description</th><th>Category</th><th>Status</th></tr></thead>
+            <tbody id="prevBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:center">
+          <button class="btn-primary" id="importBtn" disabled>Import 0 transactions</button>
+          <a class="btn-ghost" href="ledger.html" style="text-decoration:none">Go to ledger →</a>
+          <a class="btn-ghost" href="reports.html" style="text-decoration:none">View P&amp;L →</a>
+          <span class="hint" id="importMsg" style="align-self:center"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+const $ = (id)=>document.getElementById(id);
+const LS_TX="ff_ledger_v1", LS_RULES="ff_import_rules_v1";
+
+/* ---------- presets (defaults reflect: revenue=bank deposits, Square=transfer) ---------- */
+const PRESETS = {
+  southstate: { label:"South State (bank)", hint:"Bank export. Deposits = revenue, withdrawals = expenses; the Amex payoff is auto-marked a transfer.",
+    date:/date|posted/i, amountRe:/amount/i, debit:/debit|withdrawal|amount.*debit/i, credit:/credit|deposit|amount.*credit/i,
+    desc:/description|memo|payee|name|detail/i, mode:"auto", sign:"signed", force:"auto",
+    category:"", method:"Bank", account:"South State", source:"southstate",
+    transferMatch:/amex|american express|epayment|card payment|to visa|to mastercard|transfer to/i },
+  amex: { label:"Amex (card charges)", hint:"Card charges = expenses. Payments/credits (negative) are auto-marked transfers.",
+    date:/date/i, amountRe:/amount/i, desc:/description|merchant|detail|payee/i, mode:"single", sign:"positive-out", force:"auto",
+    category:"", method:"Amex", account:"Amex", source:"amex",
+    transferMatch:/autopay|online payment|payment received|thank you|mobile payment/i },
+  meta: { label:"Meta / Facebook Ads", hint:"Ad spend = advertising expense.",
+    date:/reporting starts|day|date/i, amountRe:/amount spent|spend|amount/i, desc:/campaign|ad set|ad name/i,
+    mode:"single", sign:"positive-out", force:"expense", category:"Advertising", method:"Amex", account:"Meta", source:"meta" },
+  tremendous: { label:"Tremendous (gift cards)", hint:"Participant gift cards = participant incentives expense.",
+    date:/created|date|sent|order/i, amountRe:/value|amount|cost|total/i, desc:/recipient|reward|campaign|name/i,
+    mode:"single", sign:"positive-out", force:"expense", category:"Participant incentives", method:"Tremendous", account:"Tremendous", source:"tremendous" },
+  square: { label:"Square (processor — imported as transfer)", hint:"Since revenue is counted from bank deposits, Square rows import as transfers so they don't double-count.",
+    date:/date/i, amountRe:/total collected|net total|amount|total/i, desc:/description|customer|note|payment|item/i,
+    mode:"single", sign:"positive-in", force:"transfer", category:"Square payout (transfer)", method:"Square", account:"Square", source:"square" },
+  generic: { label:"Generic CSV", hint:"Any CSV. Map the columns yourself.",
+    date:/date|posted|time/i, amountRe:/amount|total|value/i, desc:/desc|name|memo|payee|merchant|detail|title|customer/i,
+    mode:"single", sign:"signed", force:"auto", category:"", method:"Other", account:"", source:"import" },
+};
+const DEFAULT_CATS = ["Focus group revenue","Client payment","Interest","Other income",
+  "Participant incentives","Advertising","Venue","Catering","Software / subscriptions","Office supplies",
+  "Contractor","Payroll","Travel","Utilities","Bank fees","Taxes","Transfer","Other expense"];
+
+/* ---------- state ---------- */
+let rawRows = [];      // full parsed CSV
+let headers = [];      // current header row cells
+let dataRows = [];     // rows after header
+let preview = [];      // computed preview entries
+
+/* ---------- helpers ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function money(n){ return "$"+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDate(iso){ if(!iso) return ""; const[y,m,d]=iso.split("-"); return `${m}/${d}/${y}`; }
+function loadTx(){ try{ return JSON.parse(localStorage.getItem(LS_TX))||[]; }catch(e){ return []; } }
+function saveTx(t){ localStorage.setItem(LS_TX, JSON.stringify(t)); }
+function uid(){ return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():("t_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9)); }
+
+function parseCSV(text){
+  const rows=[]; let row=[], field="", inQ=false, i=0;
+  text=text.replace(/^﻿/,""); // strip BOM
+  while(i<text.length){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i+=2; continue; } inQ=false; i++; continue; }
+      field+=c; i++; continue;
+    }
+    if(c==='"'){ inQ=true; i++; continue; }
+    if(c===','){ row.push(field); field=""; i++; continue; }
+    if(c==='\r'){ i++; continue; }
+    if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=""; i++; continue; }
+    field+=c; i++;
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>!(r.length===1&&r[0].trim()===""));
+}
+function parseAmount(s){
+  if(s==null) return NaN;
+  let t=String(s).trim(); if(!t) return NaN;
+  let neg=false;
+  if(/^\(.*\)$/.test(t)){ neg=true; t=t.slice(1,-1); }
+  if(/dr$/i.test(t)) neg=true;
+  const isCR=/cr$/i.test(t);
+  t=t.replace(/[$,\s]/g,"").replace(/(cr|dr)$/i,"");
+  if(/^-/.test(t)){ neg=true; t=t.replace(/-/g,""); }
+  let n=parseFloat(t);
+  if(isNaN(n)) return NaN;
+  if(isCR) neg=false;
+  return neg?-n:n;
+}
+function parseDate(s){
+  if(!s) return "";
+  s=String(s).trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(m){ let[,mo,d,y]=m; if(y.length===2) y="20"+y; return `${y}-${mo.padStart(2,"0")}-${d.padStart(2,"0")}`; }
+  const dt=new Date(s);
+  if(!isNaN(dt)) return new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  return "";
+}
+function findCol(re){ if(!re) return -1; return headers.findIndex(h=>re.test(String(h||"").trim())); }
+function hashOf(t){ return [t.source||"", t.date, Number(t.amount).toFixed(2), (String(t.party||"")+String(t.memo||"")).slice(0,40).toLowerCase()].join("|"); }
+
+/* ---------- rules ---------- */
+function loadRules(){ return localStorage.getItem(LS_RULES)||""; }
+function parseRules(text){
+  return text.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{
+    const i=l.indexOf("=>"); if(i===-1) return null;
+    return { kw:l.slice(0,i).trim().toLowerCase(), cat:l.slice(i+2).trim() };
+  }).filter(Boolean);
+}
+function applyRules(desc, rules){
+  const d=(desc||"").toLowerCase();
+  for(const r of rules){ if(r.kw && d.includes(r.kw)) return r.cat; }
+  return null;
+}
+
+/* ---------- UI wiring ---------- */
+function initPresets(){
+  $("preset").innerHTML = Object.keys(PRESETS).map(k=>`<option value="${k}">${esc(PRESETS[k].label)}</option>`).join("");
+  $("catlist").innerHTML = DEFAULT_CATS.map(c=>`<option value="${esc(c)}">`).join("");
+}
+function fillSelect(sel, idx){
+  sel.innerHTML = `<option value="-1">— none —</option>` + headers.map((h,i)=>`<option value="${i}">${esc(h||("Column "+(i+1)))}</option>`).join("");
+  sel.value = String(idx);
+}
+function applyPreset(){
+  const p = PRESETS[$("preset").value];
+  $("presetHint").textContent = p.hint;
+  if(!headers.length) return;
+  const dcAvailable = findCol(p.debit)>-1 && findCol(p.credit)>-1;
+  $("m_mode").value = (p.mode==="auto" && dcAvailable) ? "dc" : (p.mode==="dc"?"dc":"single");
+  onModeChange();
+  fillSelect($("m_date"), findCol(p.date));
+  fillSelect($("m_amount"), findCol(p.amountRe));
+  fillSelect($("m_debit"), findCol(p.debit));
+  fillSelect($("m_credit"), findCol(p.credit));
+  fillSelect($("m_desc"), findCol(p.desc));
+  fillSelect($("m_memo"), -1);
+  $("m_sign").value = p.sign;
+  $("m_force").value = p.force;
+  $("m_category").value = p.category;
+  $("m_method").value = p.method;
+  $("m_account").value = p.account;
+}
+function onModeChange(){
+  const dc = $("m_mode").value==="dc";
+  $("w_single").classList.toggle("hidden", dc);
+  $("w_sign").classList.toggle("hidden", dc);
+  $("w_debit").classList.toggle("hidden", !dc);
+  $("w_credit").classList.toggle("hidden", !dc);
+}
+function refreshHeaderRow(){
+  const hr = parseInt($("headerRow").value,10);
+  $("hrNum").textContent = hr;
+  headers = (rawRows[hr-1]||[]).map(h=>String(h||"").trim());
+  dataRows = rawRows.slice(hr);
+  $("rawPeek").textContent = "Header: " + headers.join(" | ");
+  applyPreset();
+}
+function onFile(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    rawRows = parseCSV(r.result);
+    if(!rawRows.length){ alert("That file has no rows."); return; }
+    const maxRow = Math.min(10, rawRows.length);
+    $("headerRow").max = maxRow;
+    // auto header row: the row with the most non-empty cells among first few
+    let best=1, bestScore=-1;
+    for(let i=0;i<Math.min(6,rawRows.length);i++){
+      const score = rawRows[i].filter(c=>String(c).trim()).length;
+      if(score>bestScore){ bestScore=score; best=i+1; }
+    }
+    $("headerRow").value = best;
+    $("headerRowWrap").classList.remove("hidden");
+    $("mapCard").classList.remove("hidden");
+    refreshHeaderRow();
+  };
+  r.readAsText(file);
+}
+
+/* ---------- preview ---------- */
+function buildPreview(){
+  const mode=$("m_mode").value, sign=$("m_sign").value, force=$("m_force").value;
+  const di=+$("m_date").value, ai=+$("m_amount").value, dbi=+$("m_debit").value, cri=+$("m_credit").value;
+  const desci=+$("m_desc").value, memoi=+$("m_memo").value;
+  const defCat=$("m_category").value.trim(), method=$("m_method").value.trim(), account=$("m_account").value.trim();
+  const source=PRESETS[$("preset").value].source;
+  const rules=parseRules($("rules").value);
+
+  const existing=new Set(loadTx().map(hashOf));
+  const seen=new Set();
+  preview=[];
+  let nNew=0,nDup=0,nBad=0,nXfer=0;
+
+  dataRows.forEach(cells=>{
+    if(!cells || cells.every(c=>!String(c).trim())) return;
+    const date=parseDate(di>-1?cells[di]:"");
+    let signed=NaN;
+    if(mode==="dc"){
+      const credit = cri>-1 ? (parseAmount(cells[cri])||0) : 0;
+      const debit  = dbi>-1 ? (parseAmount(cells[dbi])||0) : 0;
+      signed = Math.abs(credit) - Math.abs(debit);   // credit = money in, debit = money out
+    } else {
+      signed=parseAmount(ai>-1?cells[ai]:"");
+    }
+    const desc=(desci>-1?String(cells[desci]||""):"").trim();
+    const memo=(memoi>-1?String(cells[memoi]||""):"").trim();
+    if(!date || isNaN(signed) || Math.abs(signed)<0.005){ nBad++; return; }
+
+    // type from sign
+    let type;
+    if(sign==="positive-in") type = signed>=0?"income":"expense";
+    else if(sign==="positive-out") type = signed>=0?"expense":"income";
+    else type = signed>=0?"income":"expense";
+    if(force!=="auto") type=force;
+    // amex-style: negative charge column = payment/credit → transfer
+    if(source==="amex" && signed<0) type="transfer";
+
+    // category via rules then default
+    let category = applyRules(desc+" "+memo, rules);
+    if(category && /^transfer$/i.test(category)) type="transfer";
+    if(!category) category=defCat;
+    // preset transferMatch
+    const p=PRESETS[$("preset").value];
+    if(p.transferMatch && p.transferMatch.test(desc+" "+memo)) type="transfer";
+
+    const entry={ id:uid(), date, type, amount:Math.abs(signed).toFixed(2),
+      category: type==="transfer" ? (category||"Transfer") : category,
+      party:desc, memo, method, account, source, cleared:false, ts:new Date().toISOString() };
+    entry.hash=hashOf(entry);
+
+    let status="new";
+    if(existing.has(entry.hash) || seen.has(entry.hash)){ status="dup"; nDup++; }
+    else { seen.add(entry.hash); nNew++; if(type==="transfer") nXfer++; }
+    preview.push({entry,status});
+  });
+
+  $("cNew").textContent=nNew; $("cDup").textContent=nDup; $("cBad").textContent=nBad; $("cXfer").textContent=nXfer;
+  renderPreview();
+  $("importBtn").disabled = nNew===0;
+  $("importBtn").textContent = `Import ${nNew} transaction${nNew===1?"":"s"}`;
+  $("prevCard").classList.remove("hidden");
+  $("prevCard").scrollIntoView({behavior:"smooth"});
+}
+function renderPreview(){
+  const body=$("prevBody"); body.innerHTML="";
+  preview.slice(0,300).forEach(({entry,status})=>{
+    const tr=document.createElement("tr");
+    if(status==="dup") tr.className="row dup";
+    const dir=entry.type;
+    const dlabel = dir==="income"?"IN":dir==="expense"?"OUT":"XFER";
+    tr.innerHTML =
+      `<td>${esc(fmtDate(entry.date))}</td>`+
+      `<td><span class="pill ${dir}">${dlabel}</span></td>`+
+      `<td class="num">${money(entry.amount)}</td>`+
+      `<td>${esc(entry.party).slice(0,48)}</td>`+
+      `<td>${esc(entry.category)||'<span class="dupflag">uncategorized</span>'}</td>`+
+      `<td>${status==="dup"?'<span class="dupflag">duplicate — skipped</span>':'new'}</td>`;
+    body.appendChild(tr);
+  });
+  if(preview.length>300){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td colspan="6" class="hint">…and ${preview.length-300} more rows</td>`;
+    body.appendChild(tr);
+  }
+}
+function doImport(){
+  const toAdd=preview.filter(p=>p.status==="new").map(p=>p.entry);
+  if(!toAdd.length) return;
+  const tx=loadTx(); tx.push(...toAdd); saveTx(tx);
+  $("importMsg").textContent = `Imported ${toAdd.length}. Saved to ledger.`;
+  $("importBtn").disabled=true; $("importBtn").textContent="Imported ✓";
+}
+
+/* ---------- init ---------- */
+function init(){
+  initPresets();
+  $("rules").value = loadRules();
+  $("preset").addEventListener("change", applyPreset);
+  $("file").addEventListener("change", e=>{ if(e.target.files[0]) onFile(e.target.files[0]); });
+  $("headerRow").addEventListener("input", refreshHeaderRow);
+  $("m_mode").addEventListener("change", onModeChange);
+  $("previewBtn").addEventListener("click", buildPreview);
+  $("importBtn").addEventListener("click", doImport);
+  $("saveRules").addEventListener("click", ()=>{ localStorage.setItem(LS_RULES,$("rules").value); $("mapMsg").textContent="Rules saved."; setTimeout(()=>$("mapMsg").textContent="",1500); });
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

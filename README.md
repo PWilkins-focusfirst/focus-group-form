@@ -12,8 +12,11 @@ localStorage; nothing is sent to a server except the registration form).
   site's front page). Share this link with research participants.
 - **`checks.html`** — **check printing** for Office Depot B 7200 business voucher
   checks (item 637‑515), South State Bank account.
-- **`ledger.html`** — **bookkeeping ledger**: income/expense tracking with a
-  running balance that imports the checks written in `checks.html`.
+- **`ledger.html`** — **bookkeeping ledger**: income/expense/transfer tracking
+  with a running net, inline category editing, and check import.
+- **`import.html`** — **multi-source CSV importer** (Square, Meta, Tremendous,
+  South State, Amex) that feeds the ledger.
+- **`reports.html`** — **Profit &amp; Loss** statement for any date range.
 
 > Note: `index_Version6.html` is an older copy of the registration form kept from
 > before the restructure; it is not linked anywhere and can be deleted.
@@ -72,8 +75,47 @@ Simple single-account bookkeeping for the South State FocusFirst account.
   data between browsers/devices or keep a safe copy — important, since the data
   lives only in this browser.
 
-### Roadmap (planned)
+## Importing transactions (`import.html`)
 
-- Reports: monthly and per-category summaries, income-vs-expense charts.
-- Reconciliation view against a bank statement.
+Upload a CSV export from each source; the app maps the columns, classifies each
+row, flags duplicates, and shows a **preview before anything is saved**.
+
+- **Presets** for South State (bank), Amex, Meta, Tremendous, Square, and a
+  Generic option. Columns auto-map but can be overridden.
+- **Category rules** (`keyword => Category`, saved) auto-categorize rows; a
+  category of `Transfer` excludes the row from the P&amp;L.
+- **De-duplication**: re-importing the same file adds nothing (matched on
+  source + date + amount + description).
+
+### Avoiding double-counting (how the defaults are set)
+
+The books count each dollar once:
+
+- **Revenue = South State deposits.** Square is imported as **transfers** (you
+  already count that money when it lands in the bank), so it never double-counts.
+- **Expenses = individual charges:** Amex line items + Meta + Tremendous + bank
+  checks/ACH. The **bank→Amex payoff** and **Amex payments/credits** are
+  auto-marked **transfers** and excluded from the P&amp;L.
+- **Transfers** (type `transfer`) never affect the P&amp;L or the ledger's net.
+
+> **Pick one source per expense.** A charge often appears on more than one export
+> (e.g. a Meta ad shows on the Meta export *and* on your Amex statement; a check
+> shows in the check register *and* on the bank export). Import it from **one**
+> place, or mark the duplicate as a transfer. When in doubt, importing **Amex +
+> bank** covers most spend; use Meta/Tremendous/Square exports for detail only.
+
+## Profit &amp; Loss (`reports.html`)
+
+Income statement for a chosen period (this month / quarter / year, or custom):
+revenue by category, expenses by category, and **net profit**, with transfers
+excluded and a note showing how many were left out. Export to CSV or print.
+
+## Roadmap (planned)
+
+- **Cloud storage via Google Sheets** — route the ledger to a Google Sheet
+  (reusing the Apps Script pattern the registration form already uses) so books
+  are saved off-device and openable in Sheets. *This is the agreed next step.*
+- Reconciliation view against a bank statement (per-account balances).
+- Cross-source duplicate detection (auto-match a bank debit to its Amex charge).
+- Income-vs-expense charts and monthly comparisons on the P&amp;L.
 - Deposit-slip printing (Office Depot D 9000 stock in the same pack).
