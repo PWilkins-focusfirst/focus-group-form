@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFirst — Getting Started</title>
+<style>
+  :root { --brand:#2f6f4f; --brand-dark:#24583f; --ink:#1f2937; --muted:#6b7280; --line:#d9dee5; --bg:#eef1f4; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); color:var(--ink); line-height:1.6; }
+  .topbar { background:linear-gradient(135deg,var(--brand),var(--brand-dark)); color:#fff; padding:16px 26px; }
+  .topbar a { color:#fff; opacity:.9; text-decoration:none; font-size:.85em; }
+  .topbar h1 { margin:6px 0 0; font-size:1.6em; }
+  .topbar p { margin:4px 0 0; opacity:.9; font-size:.9em; }
+  .wrap { max-width:820px; margin:0 auto; padding:22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 6px 18px rgba(20,30,50,.06); margin-bottom:20px; overflow:hidden; }
+  .card .body { padding:20px 24px; }
+  h2 { font-size:1.2em; margin:0 0 4px; color:var(--brand-dark); }
+  h3 { font-size:1.02em; margin:18px 0 6px; }
+  .lead { color:var(--muted); margin:0 0 14px; }
+  ol.steps { padding-left:0; counter-reset:step; list-style:none; margin:0; }
+  ol.steps > li { position:relative; padding:14px 0 14px 52px; border-bottom:1px solid #eef1f4; }
+  ol.steps > li:last-child { border-bottom:none; }
+  ol.steps > li::before { counter-increment:step; content:counter(step); position:absolute; left:0; top:12px;
+    width:34px; height:34px; border-radius:50%; background:var(--brand); color:#fff; font-weight:700;
+    display:flex; align-items:center; justify-content:center; }
+  ol.steps b { color:var(--ink); }
+  a.btn { display:inline-block; background:var(--brand); color:#fff; text-decoration:none; padding:7px 13px; border-radius:7px; font-size:.86em; font-weight:600; margin-top:4px; }
+  a.btn:hover { background:var(--brand-dark); }
+  a.link { color:var(--brand); font-weight:600; text-decoration:none; }
+  .callout { background:#fff7ed; border:1px solid #fed7aa; color:#7c2d12; border-radius:8px; padding:12px 15px; font-size:.9em; margin:14px 0; }
+  .callout.tip { background:#eef7f1; border-color:#bfe0cd; color:#1f5137; }
+  .callout.info { background:#eef5ff; border-color:#bfdbfe; color:#1e3a8a; }
+  details { border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden; }
+  details > summary { cursor:pointer; padding:13px 16px; font-weight:700; background:#f7f9fb; list-style:none; }
+  details > summary::-webkit-details-marker { display:none; }
+  details > summary::before { content:"▸ "; color:var(--brand); }
+  details[open] > summary::before { content:"▾ "; }
+  details .inner { padding:6px 18px 16px; }
+  table.gloss { width:100%; border-collapse:collapse; font-size:.92em; }
+  table.gloss td { padding:8px 6px; border-bottom:1px solid #eef1f4; vertical-align:top; }
+  table.gloss td.term { font-weight:700; width:150px; color:var(--brand-dark); }
+  kbd { background:#eef2f7; border:1px solid #d0d7de; border-radius:4px; padding:1px 6px; font-size:.85em; font-family:inherit; }
+  .toc { display:flex; flex-wrap:wrap; gap:8px; }
+  .toc a { background:#eef2f7; color:#334155; text-decoration:none; padding:6px 12px; border-radius:20px; font-size:.85em; font-weight:600; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html">← FocusFirst home</a>
+    <h1>Getting Started</h1>
+    <p>Plain-English guide to running your books. No accounting background needed.</p>
+  </div>
+
+  <div class="wrap">
+
+    <div class="card"><div class="body">
+      <div class="toc">
+        <a href="#first">🚀 Do this first</a>
+        <a href="#monthly">🔁 Monthly routine</a>
+        <a href="#checks">🖨️ Print a check</a>
+        <a href="#import">📥 Import transactions</a>
+        <a href="#pnl">📊 Read your P&amp;L</a>
+        <a href="#safe">💾 Keep data safe</a>
+        <a href="#words">📖 Plain-English glossary</a>
+      </div>
+    </div></div>
+
+    <!-- FIRST -->
+    <div class="card" id="first"><div class="body">
+      <h2>🚀 Do this first (about 15 minutes)</h2>
+      <p class="lead">You only do these once. After that it's just a quick monthly routine.</p>
+      <ol class="steps">
+        <li><b>Set up check printing.</b> Open <a class="link" href="checks.html">Print Checks</a> →
+          fill in <b>Account &amp; Bank Setup</b> (your business name/address, South State routing &amp;
+          account number, and the number of your next blank check). Click <b>Save setup</b>.
+          <div class="callout tip">Your bank info is typed once and saved in your browser. It's never sent anywhere.</div>
+        </li>
+        <li><b>Do a test print.</b> On the same page, click <b>Print alignment guide</b> and print it on
+          plain paper. Hold it up to the light against one of your real Office Depot check sheets.
+          If it lines up, you're set. If not, nudge the <b>Offset X/Y</b> numbers (under "Advanced") and try again.
+        </li>
+        <li><b>Set your starting balance.</b> Open the <a class="link" href="ledger.html">Ledger</a> →
+          in <b>Account Setup</b> type today's South State balance as the <b>Opening balance</b>, set the
+          <b>As of date</b>, and click <b>Save</b>.
+        </li>
+        <li><b>Bring in your history.</b> Open <a class="link" href="import.html">Import Transactions</a> and
+          load a CSV from each account (see the <a class="link" href="#import">import guide</a> below).
+          Start with <b>South State</b> and <b>Amex</b> — that covers most of the picture.
+        </li>
+        <li><b>Look at your first P&amp;L.</b> Open <a class="link" href="reports.html">Profit &amp; Loss</a>,
+          pick a date range, and see your revenue, expenses, and profit.
+        </li>
+      </ol>
+    </div></div>
+
+    <!-- MONTHLY -->
+    <div class="card" id="monthly"><div class="body">
+      <h2>🔁 Your monthly routine (about 10 minutes)</h2>
+      <p class="lead">Once a month, after your statements are ready:</p>
+      <ol class="steps">
+        <li><b>Download last month's CSV</b> from each service (South State, Amex, Meta, Tremendous, Square).
+          Each has an "Export" or "Download CSV" button — see each service's guide below.</li>
+        <li><b>Import each file</b> in <a class="link" href="import.html">Import Transactions</a>. Pick the
+          matching source, choose the file, click <b>Preview</b>, then <b>Import</b>. Re-importing the same
+          file is safe — duplicates are skipped automatically.</li>
+        <li><b>Tidy up categories</b> in the <a class="link" href="ledger.html">Ledger</a>. Anything marked
+          <i>uncategorized</i> can be fixed by clicking the category and typing one.</li>
+        <li><b>Run the P&amp;L</b> for the month and, if you like, click <b>Export CSV</b> or <b>Print</b> to
+          save a copy for your records or your accountant.</li>
+        <li><b>Back up</b> (Ledger → <b>Backup</b>). Keep the file somewhere safe.</li>
+      </ol>
+      <div class="callout info"><b>The golden rule to avoid double-counting:</b> count each charge from
+        <u>one</u> place. Importing <b>South State + Amex</b> covers almost everything. Use Meta / Tremendous /
+        Square files only if you want extra detail — and if you do, mark the matching Amex/bank line as a
+        <b>Transfer</b> so it isn't counted twice.</div>
+    </div></div>
+
+    <!-- CHECKS -->
+    <div class="card" id="checks"><div class="body">
+      <h2>🖨️ How to print a check</h2>
+      <details><summary>Step by step</summary><div class="inner">
+        <ol class="steps">
+          <li>Open <a class="link" href="checks.html">Print Checks</a>. (Do your one-time bank setup first.)</li>
+          <li>Under <b>Write a Check</b>, type the <b>payee</b> (who you're paying), the <b>amount</b>, and a
+            <b>memo</b> (what it's for). The written-out amount and check number fill in automatically.</li>
+          <li>Load a blank check sheet into your printer.</li>
+          <li>Click <b>Record &amp; Print check</b>. This prints the check and logs it so the check number
+            counts up next time. (Use <b>Print (don't record)</b> if you're just testing.)</li>
+          <li>In the print box: choose <b>Letter</b> size, <b>100% / Actual size</b>, margins <b>None</b>, and
+            turn <u>off</u> "fit to page" and headers/footers.</li>
+        </ol>
+        <div class="callout"><b>About the numbers at the bottom of the check (the MICR line):</b> banks
+          prefer special magnetic ink. Regular printer ink usually works because banks scan the image, but
+          check with South State before printing a lot of them.</div>
+      </div></details>
+    </div></div>
+
+    <!-- IMPORT -->
+    <div class="card" id="import"><div class="body">
+      <h2>📥 How to import transactions</h2>
+      <p class="lead">"Importing" just means feeding a spreadsheet file (a <b>CSV</b>) from each account into
+        your ledger, so you don't type anything by hand.</p>
+      <details><summary>The basic steps (same for every source)</summary><div class="inner">
+        <ol class="steps">
+          <li>Open <a class="link" href="import.html">Import Transactions</a>.</li>
+          <li>Pick the <b>Source</b> that matches your file (e.g. "South State").</li>
+          <li>Click <b>Choose file</b> and select the CSV you downloaded.</li>
+          <li>The app fills in the column mapping for you. Usually you can leave it as-is.</li>
+          <li>Click <b>Preview import</b>. Review the list — green <b>IN</b> is money in, red <b>OUT</b> is money
+            out, purple <b>XFER</b> is a transfer (ignored in profit).</li>
+          <li>Click <b>Import</b>. Done — it's now in your ledger.</li>
+        </ol>
+      </div></details>
+      <details><summary>Where to download each CSV</summary><div class="inner">
+        <table class="gloss">
+          <tr><td class="term">South State</td><td>Log in → your checking account → look for <b>Download</b> /
+            <b>Export</b> (choose CSV or "Spreadsheet"). This is your <b>revenue</b> and most expenses.</td></tr>
+          <tr><td class="term">Amex</td><td>Log in → <b>Statements &amp; Activity</b> → <b>Download</b> → CSV/Excel.
+            These are your card expenses.</td></tr>
+          <tr><td class="term">Meta (Facebook)</td><td>Ads Manager → <b>Reports</b> / the export button →
+            export the campaign spend as CSV.</td></tr>
+          <tr><td class="term">Tremendous</td><td>Dashboard → <b>Rewards</b> / <b>Orders</b> → export CSV.
+            These are participant gift cards.</td></tr>
+          <tr><td class="term">Square</td><td>Dashboard → <b>Reports</b> / <b>Transactions</b> → export CSV.
+            (Imported as transfers, since the money is already counted as a bank deposit.)</td></tr>
+        </table>
+        <div class="callout info">Not sure a file will work? Just try it — nothing is saved until you click
+          <b>Import</b>, and the preview shows exactly what will happen. If the columns look wrong, you can
+          change them, or send the file's top row to your helper to build an exact match.</div>
+      </div></details>
+    </div></div>
+
+    <!-- PNL -->
+    <div class="card" id="pnl"><div class="body">
+      <h2>📊 How to read your Profit &amp; Loss</h2>
+      <div class="inner" style="padding-left:0">
+        <p>Open <a class="link" href="reports.html">Profit &amp; Loss</a> and pick a period at the top
+          (This month, This year, etc.). You'll see:</p>
+        <table class="gloss">
+          <tr><td class="term">Revenue</td><td>Money the business earned, grouped by category.</td></tr>
+          <tr><td class="term">Expenses</td><td>Money the business spent, grouped by category.</td></tr>
+          <tr><td class="term">Net profit</td><td>Revenue minus expenses. Green is a profit, red is a loss.</td></tr>
+        </table>
+        <p>Transfers (moving your own money between accounts) are left out on purpose, with a note showing how
+          many were excluded. Use <b>Export CSV</b> or <b>Print</b> to hand it to your accountant.</p>
+      </div>
+    </div></div>
+
+    <!-- SAFE -->
+    <div class="card" id="safe"><div class="body">
+      <h2>💾 Keeping your data safe (important)</h2>
+      <p>Right now everything is saved <b>only in the browser on this computer</b>. It is not in the cloud yet.
+        That means:</p>
+      <ul>
+        <li>Use the same browser on the same computer each time.</li>
+        <li>About once a month, open the <a class="link" href="ledger.html">Ledger</a> and click <b>Backup</b>.
+          Keep that file somewhere safe (Google Drive, email it to yourself, etc.).</li>
+        <li>If you ever switch computers, use <b>Restore</b> to load your backup.</li>
+      </ul>
+      <div class="callout">Clearing your browser history/data can erase this. A recent backup is your safety net.
+        (A cloud version using Google Sheets is planned so this becomes automatic.)</div>
+    </div></div>
+
+    <!-- GLOSSARY -->
+    <div class="card" id="words"><div class="body">
+      <h2>📖 Plain-English glossary</h2>
+      <table class="gloss">
+        <tr><td class="term">Transaction</td><td>One line of money moving — a payment, a charge, a deposit.</td></tr>
+        <tr><td class="term">Category</td><td>What a transaction was <i>for</i> (Advertising, Travel, Venue…).
+          Categories are what group your P&amp;L.</td></tr>
+        <tr><td class="term">Transfer</td><td>Moving your own money between your accounts (e.g., paying your
+          Amex bill from the bank). It's not income or an expense, so it's excluded from profit.</td></tr>
+        <tr><td class="term">Revenue / Income</td><td>Money coming <i>in</i> to the business.</td></tr>
+        <tr><td class="term">Expense</td><td>Money going <i>out</i> for business costs.</td></tr>
+        <tr><td class="term">CSV</td><td>A spreadsheet file you download from a bank or service. The importer
+          reads it so you don't type things in.</td></tr>
+        <tr><td class="term">Cleared</td><td>A checkmark meaning the money has actually gone through at the bank
+          (useful when matching against a statement).</td></tr>
+        <tr><td class="term">MICR line</td><td>The stylized numbers along the bottom of a check that the bank's
+          machines read (your routing and account number).</td></tr>
+        <tr><td class="term">Ledger</td><td>The full list of every transaction in one place.</td></tr>
+        <tr><td class="term">P&amp;L</td><td>Profit &amp; Loss — the report showing revenue, expenses, and
+          whether you made a profit.</td></tr>
+      </table>
+    </div></div>
+
+    <div class="card"><div class="body" style="text-align:center">
+      <p style="margin:0 0 10px">Ready to start?</p>
+      <a class="btn" href="checks.html">Print Checks</a>
+      <a class="btn" href="import.html">Import</a>
+      <a class="btn" href="ledger.html">Ledger</a>
+      <a class="btn" href="reports.html">Profit &amp; Loss</a>
+    </div></div>
+
+  </div>
+</body>
+</html>
