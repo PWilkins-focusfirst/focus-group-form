@@ -1,12 +1,22 @@
 # focus-group-form
 
-Static pages for FocusFirst.
+FocusFirst operations &amp; accounting workspace — a set of static, dependency-free
+HTML pages that run entirely in the browser (data is stored on-device in
+localStorage; nothing is sent to a server except the registration form).
 
 ## Pages
 
-- **`index.html`** — Focus Group registration form.
-- **`checks.html`** — FocusFirst accounting: **check printing** for Office Depot
-  B 7200 business voucher checks (item 637‑515), South State Bank account.
+- **`index.html`** — FocusFirst **hub / landing page**. Links to everything below
+  and shows quick stats (ledger balance, checks written).
+- **`register.html`** — public **Focus Group registration** form (previously the
+  site's front page). Share this link with research participants.
+- **`checks.html`** — **check printing** for Office Depot B 7200 business voucher
+  checks (item 637‑515), South State Bank account.
+- **`ledger.html`** — **bookkeeping ledger**: income/expense tracking with a
+  running balance that imports the checks written in `checks.html`.
+
+> Note: `index_Version6.html` is an older copy of the registration form kept from
+> before the restructure; it is not linked anywhere and can be deleted.
 
 ## Check printing (`checks.html`)
 
@@ -47,3 +57,23 @@ lines up on your printer. Defaults assume a 3.5″ check + two 3.5″ stubs.
   `C`=On‑Us ⑈, `D`=Dash ⑉. The amount field (far right) is intentionally left
   blank for the bank to encode.
 - The check register can be exported to CSV for bookkeeping.
+
+## Ledger (`ledger.html`)
+
+Simple single-account bookkeeping for the South State FocusFirst account.
+
+- Set an **opening balance** and as-of date, then add **money in / money out**
+  transactions with category, payee, method, memo, and a cleared flag.
+- **Import checks from register** pulls every check written in `checks.html` into
+  the ledger as expenses (idempotent — re-importing only adds new checks).
+- Shows a **running balance** per row plus summary totals (in, out, current
+  balance, uncleared count), with search/category/direction filters.
+- **Export CSV** for your accountant, and **Backup / Restore** (JSON) to move the
+  data between browsers/devices or keep a safe copy — important, since the data
+  lives only in this browser.
+
+### Roadmap (planned)
+
+- Reports: monthly and per-category summaries, income-vs-expense charts.
+- Reconciliation view against a bank statement.
+- Deposit-slip printing (Office Depot D 9000 stock in the same pack).

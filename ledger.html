@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusFirst — Ledger</title>
+<style>
+  :root {
+    --brand: #2f6f4f; --brand-dark: #24583f;
+    --ink: #1f2937; --muted: #6b7280; --line: #d9dee5; --bg: #eef1f4;
+    --in: #1d7a4c; --out: #b4342b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--ink); }
+  .topbar { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color: #fff; padding: 16px 26px; }
+  .topbar a.home { color: #fff; opacity: .85; text-decoration: none; font-size: .85em; }
+  .topbar h1 { margin: 6px 0 0; font-size: 1.5em; }
+  .topbar p { margin: 4px 0 0; opacity: .9; font-size: .88em; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px; }
+
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 18px rgba(20,30,50,.06); margin-bottom: 18px; overflow: hidden; }
+  .card > h2 { margin: 0; padding: 13px 18px; font-size: 1em; background: #f7f9fb; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .card .body { padding: 16px 18px; }
+
+  label { display: block; font-size: .8em; font-weight: 600; color: #374151; margin: 10px 0 5px; }
+  input, select, textarea { width: 100%; padding: 9px 11px; font-size: 14px; border: 1.5px solid var(--line); border-radius: 7px; background:#fff; font-family: inherit; }
+  input:focus, select:focus { outline: none; border-color: var(--brand); }
+  .hint { font-size: .76em; color: var(--muted); margin-top: 4px; font-weight: 400; }
+
+  button { font-family: inherit; font-size: 14px; font-weight: 600; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; }
+  .btn-primary { background: var(--brand); color:#fff; } .btn-primary:hover { background: var(--brand-dark); }
+  .btn-ghost { background:#eef2f7; color:#334155; } .btn-ghost:hover { background:#e2e8f0; }
+  .btn-sm { padding: 6px 11px; font-size: .8em; }
+
+  /* summary cards */
+  .summary { display:grid; grid-template-columns: repeat(5,1fr); gap:12px; margin-bottom:18px; }
+  @media (max-width: 860px){ .summary{ grid-template-columns: repeat(2,1fr);} }
+  .sc { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 15px; box-shadow:0 6px 18px rgba(20,30,50,.06); }
+  .sc .lbl { font-size:.72em; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+  .sc .val { font-size:1.35em; font-weight:700; margin-top:4px; }
+  .val.in { color: var(--in); } .val.out { color: var(--out); }
+
+  .formgrid { display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; align-items:end; }
+  @media (max-width: 980px){ .formgrid{ grid-template-columns: repeat(2,1fr);} }
+  .formgrid .wide { grid-column: span 2; }
+
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .toolbar input, .toolbar select { width:auto; }
+  .toolbar .grow { flex:1; min-width:160px; }
+
+  table.tx { width:100%; border-collapse: collapse; font-size:.85em; }
+  table.tx th, table.tx td { padding:8px 9px; border-bottom:1px solid var(--line); text-align:left; vertical-align: top; }
+  table.tx th { background:#f7f9fb; position: sticky; top:0; font-size:.85em; }
+  table.tx td.num, table.tx th.num { text-align:right; font-variant-numeric: tabular-nums; white-space:nowrap; }
+  .pill { display:inline-block; font-size:.72em; font-weight:700; border-radius:20px; padding:2px 8px; }
+  .pill.in { background:#e4f5ec; color: var(--in); } .pill.out { background:#fbeae8; color: var(--out); }
+  .amt.in { color: var(--in); font-weight:600; } .amt.out { color: var(--out); font-weight:600; }
+  .rowbtn { background:none; border:none; cursor:pointer; color:#9aa4b0; font-size:1.1em; padding:0 4px; }
+  .rowbtn:hover { color: var(--out); }
+  .clr { cursor:pointer; }
+  .empty { color: var(--muted); padding: 16px 0; font-size:.9em; }
+  .tablewrap { max-height: 560px; overflow:auto; }
+  .src { font-size:.72em; color:#8a94a0; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="home" href="index.html">← FocusFirst home</a>
+    <h1>Ledger</h1>
+    <p>Income &amp; expense bookkeeping · balance stays in sync with checks you write</p>
+  </div>
+
+  <div class="wrap">
+    <!-- summary -->
+    <div class="summary">
+      <div class="sc"><div class="lbl">Opening balance</div><div class="val" id="sOpen">$0.00</div></div>
+      <div class="sc"><div class="lbl">Money in</div><div class="val in" id="sIn">$0.00</div></div>
+      <div class="sc"><div class="lbl">Money out</div><div class="val out" id="sOut">$0.00</div></div>
+      <div class="sc"><div class="lbl">Current balance</div><div class="val" id="sBal">$0.00</div></div>
+      <div class="sc"><div class="lbl">Uncleared</div><div class="val" id="sUncleared">0</div></div>
+    </div>
+
+    <!-- setup -->
+    <div class="card">
+      <h2>Account Setup <span id="cfgState" class="hint"></span></h2>
+      <div class="body">
+        <div class="formgrid">
+          <div class="wide">
+            <label>Account name</label>
+            <input id="cfg_name" placeholder="South State — FocusFirst checking">
+          </div>
+          <div>
+            <label>Opening balance (USD)</label>
+            <input id="cfg_opening" inputmode="decimal" placeholder="0.00">
+          </div>
+          <div>
+            <label>As of date</label>
+            <input id="cfg_asof" type="date">
+          </div>
+          <div style="grid-column: span 2; display:flex; gap:10px; align-items:end">
+            <button class="btn-primary" id="saveCfg" style="flex:1">Save</button>
+          </div>
+        </div>
+        <div class="hint" style="margin-top:8px">Everything is stored only in this browser (localStorage). Use <b>Backup</b> below to keep a copy.</div>
+      </div>
+    </div>
+
+    <!-- add transaction -->
+    <div class="card">
+      <h2>Add Transaction</h2>
+      <div class="body">
+        <div class="formgrid">
+          <div>
+            <label>Date</label>
+            <input id="t_date" type="date">
+          </div>
+          <div>
+            <label>Direction</label>
+            <select id="t_type">
+              <option value="expense">Money out</option>
+              <option value="income">Money in</option>
+            </select>
+          </div>
+          <div>
+            <label>Method</label>
+            <select id="t_method">
+              <option>Check</option><option>ACH / Transfer</option><option>Debit card</option>
+              <option>Cash</option><option>Deposit</option><option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Amount (USD)</label>
+            <input id="t_amount" inputmode="decimal" placeholder="0.00">
+          </div>
+          <div class="wide">
+            <label>Payee / Received from</label>
+            <input id="t_party" placeholder="Who was paid / who paid you">
+          </div>
+          <div class="wide">
+            <label>Category</label>
+            <input id="t_category" list="catlist" placeholder="e.g. Participant incentives">
+            <datalist id="catlist"></datalist>
+          </div>
+          <div class="wide">
+            <label>Memo</label>
+            <input id="t_memo" placeholder="Invoice #, notes">
+          </div>
+          <div>
+            <label>Check # (optional)</label>
+            <input id="t_checkno" inputmode="numeric" placeholder="—">
+          </div>
+          <div style="display:flex; align-items:end; gap:8px">
+            <label style="display:flex; align-items:center; gap:6px; margin:0; font-weight:600">
+              <input type="checkbox" id="t_cleared" style="width:auto"> Cleared
+            </label>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
+          <button class="btn-primary" id="addBtn">Add transaction</button>
+          <button class="btn-ghost" id="importBtn">Import checks from register</button>
+          <span id="addMsg" class="hint" style="align-self:center"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- transactions -->
+    <div class="card">
+      <h2>Transactions
+        <span style="display:flex; gap:8px">
+          <button class="btn-ghost btn-sm" id="exportCsv">Export CSV</button>
+          <button class="btn-ghost btn-sm" id="backupBtn">Backup</button>
+          <button class="btn-ghost btn-sm" id="restoreBtn">Restore</button>
+          <input type="file" id="restoreFile" accept="application/json" style="display:none">
+        </span>
+      </h2>
+      <div class="body">
+        <div class="toolbar" style="margin-bottom:12px">
+          <input class="grow" id="f_search" placeholder="Search payee, memo, category…">
+          <select id="f_type">
+            <option value="">All directions</option>
+            <option value="income">Money in</option>
+            <option value="expense">Money out</option>
+          </select>
+          <select id="f_cat"><option value="">All categories</option></select>
+        </div>
+        <div class="tablewrap">
+          <table class="tx">
+            <thead><tr>
+              <th>Date</th><th>Dir</th><th>Category</th><th>Payee / From</th>
+              <th>Memo</th><th>Method</th><th class="num">Amount</th><th class="num">Balance</th>
+              <th style="text-align:center">Clr</th><th></th>
+            </tr></thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+        <div id="txEmpty" class="empty">No transactions yet. Add one above, or import the checks you've printed.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const LS_CFG = "ff_ledger_cfg_v1";
+const LS_TX  = "ff_ledger_v1";
+const LS_CHECKS = "ff_check_register_v1";
+
+const DEFAULT_CATS = [
+  "Focus group revenue","Client payment","Grant","Interest","Other income",
+  "Participant incentives","Venue","Catering","Software / subscriptions","Office supplies",
+  "Contractor","Payroll","Travel","Utilities","Bank fees","Taxes","Other expense"
+];
+
+/* ---------- storage ---------- */
+function loadCfg(){ try { return JSON.parse(localStorage.getItem(LS_CFG)) || {}; } catch(e){ return {}; } }
+function saveCfgObj(c){ localStorage.setItem(LS_CFG, JSON.stringify(c)); }
+function loadTx(){ try { return JSON.parse(localStorage.getItem(LS_TX)) || []; } catch(e){ return []; } }
+function saveTx(t){ localStorage.setItem(LS_TX, JSON.stringify(t)); }
+function loadChecks(){ try { return JSON.parse(localStorage.getItem(LS_CHECKS)) || []; } catch(e){ return []; } }
+
+/* ---------- helpers ---------- */
+function money(n){ return "$" + Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function fmtDate(iso){ if(!iso) return ""; const [y,m,d]=iso.split("-"); return `${m}/${d}/${y}`; }
+let _seq = 0;
+function uid(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "t_" + Date.now().toString(36) + "_" + (_seq++) + "_" + Math.random().toString(36).slice(2, 8);
+}
+function todayISO(){ const n=new Date(); return new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+
+/* ---------- config wiring ---------- */
+function fillCfg(){
+  const c = loadCfg();
+  $("cfg_name").value = c.name || "South State — FocusFirst checking";
+  $("cfg_opening").value = c.opening != null ? c.opening : "";
+  $("cfg_asof").value = c.asof || "";
+}
+function saveCfg(){
+  const c = { name: $("cfg_name").value.trim(), opening: parseFloat($("cfg_opening").value)||0, asof: $("cfg_asof").value };
+  saveCfgObj(c);
+  $("cfgState").textContent = "saved ✓"; $("cfgState").className = "hint";
+  setTimeout(()=>{ $("cfgState").textContent=""; }, 2000);
+  render();
+}
+
+/* ---------- categories ---------- */
+function allCategories(){
+  const used = new Set(loadTx().map(t=>t.category).filter(Boolean));
+  DEFAULT_CATS.forEach(c=>used.add(c));
+  return [...used].sort((a,b)=>a.localeCompare(b));
+}
+function refreshCatLists(){
+  const cats = allCategories();
+  $("catlist").innerHTML = cats.map(c=>`<option value="${esc(c)}">`).join("");
+  const cur = $("f_cat").value;
+  $("f_cat").innerHTML = `<option value="">All categories</option>` + cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  $("f_cat").value = cur;
+}
+
+/* ---------- add / import ---------- */
+function addTx(){
+  const amt = parseFloat($("t_amount").value);
+  const msg = $("addMsg");
+  if (!$("t_date").value) { msg.textContent="Pick a date."; return; }
+  if (isNaN(amt) || amt <= 0) { msg.textContent="Enter a positive amount."; return; }
+  if (!$("t_party").value.trim()) { msg.textContent="Enter who was paid / who paid you."; return; }
+  const tx = loadTx();
+  tx.push({
+    id: uid(), date: $("t_date").value, type: $("t_type").value,
+    amount: amt.toFixed(2), category: $("t_category").value.trim(),
+    party: $("t_party").value.trim(), memo: $("t_memo").value.trim(),
+    method: $("t_method").value, checkNo: $("t_checkno").value.trim(),
+    cleared: $("t_cleared").checked, source: "manual", ts: new Date().toISOString()
+  });
+  saveTx(tx);
+  // reset a few fields
+  $("t_amount").value=""; $("t_party").value=""; $("t_memo").value=""; $("t_category").value=""; $("t_checkno").value=""; $("t_cleared").checked=false;
+  msg.textContent = "Added.";
+  setTimeout(()=>{ msg.textContent=""; }, 1500);
+  render();
+}
+function importChecks(){
+  const checks = loadChecks();
+  const msg = $("addMsg");
+  if (!checks.length) { msg.textContent = "No checks in the register yet."; return; }
+  const tx = loadTx();
+  const existing = new Set(tx.map(t=>t.source));
+  let added = 0;
+  checks.forEach(ch => {
+    const src = "check:" + ch.checkNo;
+    if (existing.has(src)) return;
+    tx.push({
+      id: uid(), date: ch.dateISO || todayISO(), type: "expense",
+      amount: ch.amount || "0.00", category: "",
+      party: ch.payee || "", memo: ch.memo || "",
+      method: "Check", checkNo: ch.checkNo,
+      cleared: false, source: src, ts: new Date().toISOString()
+    });
+    existing.add(src); added++;
+  });
+  saveTx(tx);
+  msg.textContent = added ? `Imported ${added} check(s).` : "Already up to date — no new checks.";
+  setTimeout(()=>{ msg.textContent=""; }, 2500);
+  render();
+}
+
+/* ---------- balance + render ---------- */
+function computeBalances(tx, opening){
+  // chronological order for running balance
+  const order = tx.map((t,i)=>({t,i}))
+    .sort((a,b)=> (a.t.date<b.t.date?-1:a.t.date>b.t.date?1:(a.t.ts<b.t.ts?-1:a.t.ts>b.t.ts?1:a.i-b.i)));
+  let bal = opening;
+  const byId = {};
+  order.forEach(({t}) => { bal += (t.type==="income"?1:-1) * (parseFloat(t.amount)||0); byId[t.id] = bal; });
+  return byId;
+}
+function currentFilters(){
+  return { q: $("f_search").value.trim().toLowerCase(), type: $("f_type").value, cat: $("f_cat").value };
+}
+function render(){
+  const cfg = loadCfg();
+  const opening = parseFloat(cfg.opening)||0;
+  const tx = loadTx();
+  const balById = computeBalances(tx, opening);
+
+  // summary
+  const inSum  = tx.filter(t=>t.type==="income").reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const outSum = tx.filter(t=>t.type==="expense").reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const uncleared = tx.filter(t=>!t.cleared).length;
+  $("sOpen").textContent = money(opening);
+  $("sIn").textContent = money(inSum);
+  $("sOut").textContent = money(outSum);
+  $("sBal").textContent = money(opening + inSum - outSum);
+  $("sUncleared").textContent = uncleared;
+
+  refreshCatLists();
+
+  // display order: newest first
+  const f = currentFilters();
+  const display = tx.slice().sort((a,b)=> (a.date<b.date?1:a.date>b.date?-1:(a.ts<b.ts?1:-1)))
+    .filter(t => {
+      if (f.type && t.type!==f.type) return false;
+      if (f.cat && t.category!==f.cat) return false;
+      if (f.q) {
+        const hay = (t.party+" "+t.memo+" "+t.category+" "+(t.checkNo||"")).toLowerCase();
+        if (!hay.includes(f.q)) return false;
+      }
+      return true;
+    });
+
+  const body = $("txBody");
+  body.innerHTML = "";
+  display.forEach(t => {
+    const tr = document.createElement("tr");
+    const dir = t.type==="income" ? "in" : "out";
+    const sign = t.type==="income" ? "+" : "−";
+    const src = t.source && t.source.startsWith("check:") ? `<div class="src">from check #${esc(t.checkNo)}</div>` : "";
+    tr.innerHTML =
+      `<td>${esc(fmtDate(t.date))}</td>`+
+      `<td><span class="pill ${dir}">${t.type==="income"?"IN":"OUT"}</span></td>`+
+      `<td>${esc(t.category)||'<span class="src">uncategorized</span>'}</td>`+
+      `<td>${esc(t.party)}${src}</td>`+
+      `<td>${esc(t.memo)}</td>`+
+      `<td>${esc(t.method)}${t.checkNo && t.method==='Check' ? ' #'+esc(t.checkNo):''}</td>`+
+      `<td class="num amt ${dir}">${sign}${money(t.amount)}</td>`+
+      `<td class="num">${money(balById[t.id])}</td>`+
+      `<td style="text-align:center"><span class="clr" data-id="${t.id}" title="toggle cleared">${t.cleared?"✓":"○"}</span></td>`+
+      `<td><button class="rowbtn" data-del="${t.id}" title="delete">×</button></td>`;
+    body.appendChild(tr);
+  });
+  $("txEmpty").style.display = display.length ? "none" : "block";
+
+  // wire row actions
+  body.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+    if (confirm("Delete this transaction?")) { saveTx(loadTx().filter(x=>x.id!==b.dataset.del)); render(); }
+  });
+  body.querySelectorAll(".clr").forEach(c => c.onclick = () => {
+    const t = loadTx(); const it = t.find(x=>x.id===c.dataset.id); if(it){ it.cleared=!it.cleared; saveTx(t); render(); }
+  });
+}
+
+/* ---------- export / backup ---------- */
+function download(name, text, type){
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click();
+}
+function exportCsv(){
+  const cfg = loadCfg(); const opening=parseFloat(cfg.opening)||0;
+  const tx = loadTx(); const bal = computeBalances(tx, opening);
+  const rows = tx.slice().sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0).map(t =>
+    [fmtDate(t.date), t.type==="income"?"IN":"OUT", t.category, t.party, t.memo, t.method, t.checkNo,
+     (t.type==="income"?"":"-")+t.amount, bal[t.id], t.cleared?"Y":"N"]
+     .map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(","));
+  const head = ["Date","Direction","Category","Payee/From","Memo","Method","CheckNo","Amount","Balance","Cleared"];
+  download("focusfirst-ledger.csv", head.join(",")+"\n"+rows.join("\n"), "text/csv");
+}
+function backup(){
+  const data = { cfg: loadCfg(), tx: loadTx(), exportedAt: new Date().toISOString(), version: 1 };
+  download("focusfirst-ledger-backup.json", JSON.stringify(data,null,2), "application/json");
+}
+function restore(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!d || !Array.isArray(d.tx)) throw new Error("bad file");
+      if (!confirm(`Restore ${d.tx.length} transaction(s)? This replaces the current ledger.`)) return;
+      saveCfgObj(d.cfg||{}); saveTx(d.tx);
+      fillCfg(); render();
+    } catch(e){ alert("Could not read that backup file."); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- init ---------- */
+function init(){
+  fillCfg();
+  $("t_date").value = todayISO();
+  if (!$("cfg_asof").value) $("cfg_asof").value = todayISO();
+
+  $("saveCfg").onclick = saveCfg;
+  $("addBtn").onclick = addTx;
+  $("importBtn").onclick = importChecks;
+  $("exportCsv").onclick = exportCsv;
+  $("backupBtn").onclick = backup;
+  $("restoreBtn").onclick = () => $("restoreFile").click();
+  $("restoreFile").onchange = (e) => { if(e.target.files[0]) restore(e.target.files[0]); e.target.value=""; };
+  ["f_search","f_type","f_cat"].forEach(id => $(id).addEventListener("input", render));
+
+  render();
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
