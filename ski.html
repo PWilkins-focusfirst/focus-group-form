@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>U.S. Ski Team Skiing</title>
+<style>
+  :root{
+    /* Intellivision-inspired 16-color palette */
+    --iv-black:#0c0005; --iv-white:#fffcff; --iv-blue:#0025ff; --iv-cyan:#5aceff;
+    --iv-red:#ff3d10;  --iv-orange:#ff8b1c; --iv-yellow:#faea27; --iv-green:#00a756;
+    --iv-dgreen:#005a2f; --iv-tan:#c9d464; --iv-grey:#a3a3a3; --iv-pink:#ff9aa3;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:#111015;
+    background-image:radial-gradient(circle at 50% 35%, #262433 0%, #0a0a0d 80%);
+    font-family:'Courier New',monospace;
+    color:var(--iv-white);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:100%;padding:14px;overflow:hidden;-webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .cabinet{
+    background:linear-gradient(#3a3a44,#1c1c22);
+    border-radius:18px;padding:14px 14px 10px;
+    box-shadow:0 18px 50px rgba(0,0,0,.6), inset 0 2px 0 rgba(255,255,255,.08);
+    max-width:min(94vw,460px);width:100%;
+  }
+  .brand{
+    display:flex;align-items:center;justify-content:space-between;
+    font-weight:bold;letter-spacing:1px;color:var(--iv-tan);
+    font-size:12px;padding:0 4px 8px;text-transform:uppercase;
+  }
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--iv-red);box-shadow:0 0 8px var(--iv-red);}
+  .screen-wrap{
+    position:relative;border:6px solid #050507;border-radius:10px;overflow:hidden;
+    background:#000;line-height:0;
+  }
+  canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;}
+  /* subtle CRT scanlines */
+  .screen-wrap::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(rgba(0,0,0,0) 0 2px, rgba(0,0,0,.16) 2px 3px);
+    mix-blend-mode:multiply;
+  }
+  .controls{display:flex;gap:8px;margin-top:10px;}
+  .pad{display:flex;gap:8px;flex:1;}
+  button.btn{
+    flex:1;background:#26262e;color:var(--iv-white);border:2px solid #45454f;
+    border-radius:10px;padding:14px 0;font-family:inherit;font-weight:bold;font-size:20px;
+    cursor:pointer;touch-action:manipulation;transition:transform .05s,background .1s;
+  }
+  button.btn:active{transform:translateY(2px);background:var(--iv-blue);}
+  button.btn.wide{font-size:13px;letter-spacing:1px;}
+  .hint{color:var(--iv-grey);font-size:10px;text-align:center;margin-top:8px;letter-spacing:1px;}
+  a{color:var(--iv-cyan);}
+</style>
+</head>
+<body>
+  <div class="cabinet">
+    <div class="brand"><span>▮ INTELLIVISION</span><span>U.S. SKI TEAM</span><span class="dot"></span></div>
+    <div class="screen-wrap">
+      <canvas id="game" width="240" height="320"></canvas>
+    </div>
+    <div class="controls">
+      <div class="pad">
+        <button class="btn" id="bLeft">◄</button>
+        <button class="btn" id="bRight">►</button>
+      </div>
+      <button class="btn wide" id="bAction" style="flex:1.2">START</button>
+    </div>
+    <div class="hint">← → or A/D to carve • ENTER/SPACE to start • pass through the flags, dodge the pines</div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  const cv = document.getElementById('game');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.imageSmoothingEnabled = false;
+
+  // ---- Intellivision palette ----
+  const C = {
+    black:'#0c0005', white:'#fffcff', blue:'#0025ff', cyan:'#5aceff',
+    red:'#ff3d10', orange:'#ff8b1c', yellow:'#faea27', green:'#00a756',
+    dgreen:'#005a2f', tan:'#c9d464', grey:'#a3a3a3', pink:'#ff9aa3',
+    snow:'#e9f4ff', snow2:'#cfe4f5'
+  };
+
+  // ---- Audio (WebAudio blips) ----
+  let AC=null;
+  function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return AC; }
+  function beep(freq,dur,type,vol){
+    const a=ac(); if(!a) return;
+    const o=a.createOscillator(), g=a.createGain();
+    o.type=type||'square'; o.frequency.value=freq;
+    g.gain.value=vol||0.12;
+    o.connect(g); g.connect(a.destination);
+    const t=a.currentTime; o.start(t);
+    g.gain.setValueAtTime(g.gain.value,t);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.stop(t+dur);
+  }
+  function noise(dur,vol){
+    const a=ac(); if(!a) return;
+    const n=Math.floor(a.sampleRate*dur);
+    const buf=a.createBuffer(1,n,a.sampleRate); const d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+    const s=a.createBufferSource(); s.buffer=buf;
+    const g=a.createGain(); g.gain.value=vol||0.25;
+    s.connect(g); g.connect(a.destination); s.start();
+  }
+  const sfxGate  = ()=>{ beep(880,0.08,'square',0.10); setTimeout(()=>beep(1320,0.09,'square',0.10),60); };
+  const sfxMiss  = ()=>{ beep(160,0.22,'sawtooth',0.14); };
+  const sfxCrash = ()=>{ noise(0.4,0.35); beep(90,0.3,'sawtooth',0.12); };
+  const sfxFinish= ()=>{ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.16,'triangle',0.12),i*130)); };
+
+  // ---- Game constants ----
+  const PLAYER_Y = 250;          // fixed screen row for the skier
+  const MARGIN = 22;
+  const EVENTS = {
+    SLALOM:   { name:'SLALOM',   gap:52, spacing:120, baseSpeed:1.5, maxSpeed:3.2, trees:0.55, gates:20 },
+    DOWNHILL: { name:'DOWNHILL', gap:64, spacing:150, baseSpeed:2.1, maxSpeed:4.6, trees:0.9,  gates:15 },
+  };
+
+  // ---- State ----
+  let state='TITLE';   // TITLE, RACE, CRASH, FINISH
+  let ev = EVENTS.SLALOM;
+  let px, pdir, speed, worldY, dist, courseLen;
+  let gatesTotal, gatesPassed, gatesMissed, penalty, timeMs, crashTimer, crashX, crashY;
+  let objs=[];          // {type:'gate'|'tree'|'mogul', y, ...}
+  let nextGateDist, gateIndex, seed=12345, tumbleFrame=0;
+  let keys={left:false,right:false};
+
+  function rnd(){ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+
+  function reset(){
+    px=W/2; pdir=0; speed=ev.baseSpeed; worldY=0; dist=0;
+    gatesTotal=ev.gates; gatesPassed=0; gatesMissed=0; penalty=0; timeMs=0;
+    crashTimer=0; objs=[]; gateIndex=0; nextGateDist=90; seed=(Date.now()&0x7fffffff)||777;
+    courseLen = ev.gates*ev.spacing + 300;
+  }
+
+  // spawn objects just above the screen as we descend
+  function spawnAhead(){
+    // spawn until we have content down to dist+screen
+    const spawnTo = dist + 360;
+    while(nextSpawn < spawnTo){
+      // gate?
+      if(gateIndex<gatesTotal && nextSpawn>=nextGateDist){
+        const gx = MARGIN+ev.gap/2 + rnd()*(W-2*MARGIN-ev.gap);
+        objs.push({type:'gate', d:nextGateDist, x:gx, color:(gateIndex%2===0)?C.red:C.blue, scored:false});
+        gateIndex++;
+        nextGateDist += ev.spacing;
+        nextSpawn = nextGateDist;
+        continue;
+      }
+      // trees / moguls filler between gates
+      if(rnd()<ev.trees){
+        const tx = MARGIN + rnd()*(W-2*MARGIN);
+        objs.push({type:'tree', d:nextSpawn, x:tx});
+      } else if(rnd()<0.5){
+        objs.push({type:'mogul', d:nextSpawn, x:MARGIN+rnd()*(W-2*MARGIN)});
+      }
+      nextSpawn += 28+rnd()*34;
+      if(gateIndex>=gatesTotal && nextSpawn>courseLen) break;
+    }
+  }
+  let nextSpawn=0;
+
+  function startRace(which){
+    ev = which; reset(); nextSpawn=0; spawnAhead(); state='RACE';
+    document.getElementById('bAction').textContent='RESET';
+    ac();
+  }
+
+  // ---- Input ----
+  function press(dir,on){
+    if(dir==='left') keys.left=on;
+    if(dir==='right') keys.right=on;
+  }
+  window.addEventListener('keydown',e=>{
+    const k=e.key.toLowerCase();
+    if(k==='arrowleft'||k==='a'){press('left',true);e.preventDefault();}
+    else if(k==='arrowright'||k==='d'){press('right',true);e.preventDefault();}
+    else if(k===' '||k==='enter'){ action(); e.preventDefault(); }
+  });
+  window.addEventListener('keyup',e=>{
+    const k=e.key.toLowerCase();
+    if(k==='arrowleft'||k==='a')press('left',false);
+    else if(k==='arrowright'||k==='d')press('right',false);
+  });
+  function bind(id,dir){
+    const el=document.getElementById(id);
+    const dn=e=>{e.preventDefault();press(dir,true);};
+    const up=e=>{e.preventDefault();press(dir,false);};
+    el.addEventListener('mousedown',dn);el.addEventListener('touchstart',dn,{passive:false});
+    window.addEventListener('mouseup',up);el.addEventListener('touchend',up,{passive:false});
+  }
+  bind('bLeft','left'); bind('bRight','right');
+  function action(){
+    if(state==='TITLE'){ startRace(selEvent); }
+    else if(state==='FINISH'){ state='TITLE'; document.getElementById('bAction').textContent='START'; }
+    else { state='TITLE'; document.getElementById('bAction').textContent='START'; }
+  }
+  document.getElementById('bAction').addEventListener('click',()=>{ ac(); action(); });
+
+  // event toggle on title via left/right handled in update
+
+  let selEvent = EVENTS.SLALOM;
+
+  // ---- Update ----
+  let last=performance.now();
+  function update(dt){
+    if(state==='TITLE'){
+      // choose event by tapping left/right (edge)
+      return;
+    }
+    if(state==='FINISH') return;
+
+    if(state==='CRASH'){
+      crashTimer-=dt; tumbleFrame+=dt*0.02;
+      if(crashTimer<=0){ state='RACE'; speed=ev.baseSpeed; }
+      return;
+    }
+
+    // RACE
+    timeMs+=dt;
+    // accelerate down the hill
+    speed += 0.0009*dt;
+    if(speed>ev.maxSpeed) speed=ev.maxSpeed;
+
+    // steering — carving reduces forward speed slightly
+    const steer = (keys.right?1:0)-(keys.left?1:0);
+    pdir = steer;
+    const carve = 2.2*(dt/16);
+    px += steer*carve;
+    if(px<MARGIN){px=MARGIN;}
+    if(px>W-MARGIN){px=W-MARGIN;}
+    let fwd = speed*(1 - Math.abs(steer)*0.18);
+    const prevDist = dist;
+    dist += fwd*(dt/16);
+
+    spawnAhead();
+
+    // Collisions/scoring are depth-based (frame-rate independent): an object
+    // is resolved the frame its depth crosses the player plane, so even a big
+    // dt step can't let a gate or tree tunnel through unscored.
+    for(const o of objs){
+      const crossed = (o.d>prevDist && o.d<=dist);
+      if(!crossed) continue;
+      if(o.type==='gate' && !o.scored){
+        o.scored=true;
+        const half=ev.gap/2;
+        if(px> o.x-half && px < o.x+half){ gatesPassed++; sfxGate(); }
+        else { gatesMissed++; penalty+=2000; sfxMiss(); }
+      } else if(o.type==='tree' && !o.hit){
+        o.hit=true;
+        if(Math.abs(px-o.x)<9){
+          state='CRASH'; crashTimer=1200; crashX=px; crashY=PLAYER_Y; tumbleFrame=0;
+          penalty+=1500; sfxCrash();
+        }
+      }
+    }
+
+    // cull passed objects
+    if(objs.length>60) objs = objs.filter(o=> (o.d-dist) > -40);
+
+    // finish
+    if(dist>=courseLen){
+      state='FINISH'; sfxFinish();
+      document.getElementById('bAction').textContent='AGAIN';
+    }
+  }
+
+  // ---- Draw helpers ----
+  function px_(x,y,w,h,col){ ctx.fillStyle=col; ctx.fillRect(x|0,y|0,w,h); }
+
+  function drawSkier(x,y,dir,tumble){
+    // chunky Intellivision-style skier (2px blocks)
+    const b=2;
+    ctx.save();
+    ctx.translate(x|0,y|0);
+    if(tumble!==undefined){ ctx.rotate(Math.sin(tumble)*1.6); }
+    else ctx.rotate(dir*0.28);
+    // skis
+    px_(-6,10,4,3,C.red); px_(2,10,4,3,C.red);
+    // legs
+    px_(-4,4,3,6,C.blue); px_(1,4,3,6,C.blue);
+    // body / jacket
+    px_(-4,-4,8,8,(tumble!==undefined)?C.orange:C.blue);
+    // number bib
+    px_(-2,-2,4,4,C.white);
+    // head + hat
+    px_(-3,-10,6,6,C.pink);
+    px_(-3,-12,6,3,C.red);
+    // arms/poles
+    px_(-8,-2,3,3,C.blue); px_(5,-2,3,3,C.blue);
+    px_(-9,1,1,7,C.grey); px_(8,1,1,7,C.grey);
+    ctx.restore();
+  }
+
+  function drawTree(x,y){
+    x|=0;y|=0;
+    px_(x-1,y+4,3,5,C.dgreen);            // trunk
+    ctx.fillStyle=C.green;
+    ctx.beginPath(); ctx.moveTo(x-9,y+5); ctx.lineTo(x+10,y+5); ctx.lineTo(x,y-11); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=C.dgreen;
+    ctx.beginPath(); ctx.moveTo(x-7,y-2); ctx.lineTo(x+8,y-2); ctx.lineTo(x,y-13); ctx.closePath(); ctx.fill();
+    px_(x-6,y+4,12,1,C.snow2);            // snow shadow
+  }
+
+  function drawGate(x,y,col){
+    x|=0;y|=0;
+    const half=ev.gap/2;
+    // two poles with pennants
+    for(const s of [-1,1]){
+      const gx=x+s*half;
+      px_(gx-1,y-16,2,22,C.grey);        // pole
+      ctx.fillStyle=col;                  // flag
+      ctx.beginPath();
+      ctx.moveTo(gx+ (s>0?1:-1), y-16);
+      ctx.lineTo(gx+ s*9, y-12);
+      ctx.lineTo(gx+ (s>0?1:-1), y-8);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  function drawMogul(x,y){
+    x|=0;y|=0;
+    ctx.fillStyle=C.snow2;
+    ctx.beginPath(); ctx.ellipse(x,y,6,3,0,0,Math.PI*2); ctx.fill();
+    px_(x-3,y-1,6,1,C.white);
+  }
+
+  // ---- Render ----
+  function drawHUD(){
+    px_(0,0,W,18,C.black);
+    ctx.fillStyle=C.tan; ctx.font='bold 11px "Courier New",monospace'; ctx.textBaseline='middle';
+    ctx.textAlign='left';
+    ctx.fillText('TIME '+fmt(timeMs+penalty), 4, 9);
+    ctx.textAlign='right';
+    ctx.fillText('GATE '+gatesPassed+'/'+gatesTotal, W-4, 9);
+    // speed bar
+    ctx.textAlign='center';
+    const pct=(speed-ev.baseSpeed)/(ev.maxSpeed-ev.baseSpeed);
+    px_(W/2-26,13,52,3,C.dgreen); px_(W/2-26,13,52*Math.max(0,Math.min(1,pct)),3,C.yellow);
+  }
+  function fmt(ms){
+    const s=ms/1000; const m=Math.floor(s/60); const r=(s-m*60);
+    return (m>0?m+':':'')+(r<10&&m>0?'0':'')+r.toFixed(1);
+  }
+
+  function drawScene(){
+    // snow field
+    px_(0,0,W,H,C.snow);
+    // side tree-lines / trail edges (parallax stripes)
+    const scroll = (dist*3)%40;
+    ctx.fillStyle=C.snow2;
+    for(let y=-40+scroll;y<H;y+=40){ px_(0,y,W,2,C.snow2); }
+    // course edge shading
+    px_(0,18,10,H,C.snow2); px_(W-10,18,10,H,C.snow2);
+
+    // world objects, far to near
+    const sorted = objs.slice().sort((a,b)=>a.d-b.d);
+    for(const o of sorted){
+      const oy = PLAYER_Y - (o.d - dist);
+      if(oy<10||oy>H+20) continue;
+      if(o.type==='mogul') drawMogul(o.x,oy);
+      else if(o.type==='gate') drawGate(o.x,oy,o.color);
+      else if(o.type==='tree') drawTree(o.x,oy);
+    }
+
+    // finish banner near end
+    const fy = PLAYER_Y - (courseLen - dist);
+    if(fy>-20 && fy<H){
+      ctx.fillStyle=C.black;
+      for(let i=0;i<W;i+=10){ px_(i,fy-6,5,6,(i/10)%2?C.red:C.white); }
+      ctx.fillStyle=C.black; ctx.textAlign='center'; ctx.font='bold 10px "Courier New"';
+      ctx.fillText('FINISH', W/2, fy+2);
+    }
+
+    // player
+    if(state==='CRASH') drawSkier(crashX,crashY,0,tumbleFrame);
+    else drawSkier(px,PLAYER_Y,pdir);
+
+    drawHUD();
+
+    if(state==='CRASH'){
+      ctx.fillStyle=C.red; ctx.textAlign='center'; ctx.font='bold 16px "Courier New"';
+      ctx.fillText('WIPEOUT!', W/2, PLAYER_Y-40);
+    }
+  }
+
+  function drawTitle(){
+    px_(0,0,W,H,C.blue);
+    // mountain
+    ctx.fillStyle=C.white;
+    ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(70,90); ctx.lineTo(120,150);
+    ctx.lineTo(170,70); ctx.lineTo(240,H); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=C.snow2;
+    ctx.beginPath(); ctx.moveTo(120,150); ctx.lineTo(170,70); ctx.lineTo(200,120);
+    ctx.lineTo(240,H); ctx.lineTo(120,H); ctx.closePath(); ctx.fill();
+    // little skier tracks
+    ctx.strokeStyle=C.cyan; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let i=0;i<3;i++){ ctx.moveTo(150-i*8,80); ctx.quadraticCurveTo(120-i*8,200,150-i*20,H); }
+    ctx.stroke();
+    drawSkier(150,120,0);
+
+    ctx.textAlign='center';
+    ctx.fillStyle=C.yellow; ctx.font='bold 20px "Courier New"';
+    ctx.fillText('U.S. SKI TEAM', W/2, 30);
+    ctx.fillStyle=C.white; ctx.font='bold 12px "Courier New"';
+    ctx.fillText('S K I I N G', W/2, 48);
+
+    // event selector
+    ctx.font='bold 13px "Courier New"';
+    const y=225;
+    ctx.fillStyle=(selEvent===EVENTS.SLALOM)?C.yellow:C.grey;
+    ctx.fillText((selEvent===EVENTS.SLALOM?'▶ ':'  ')+'SLALOM', W/2, y);
+    ctx.fillStyle=(selEvent===EVENTS.DOWNHILL)?C.yellow:C.grey;
+    ctx.fillText((selEvent===EVENTS.DOWNHILL?'▶ ':'  ')+'DOWNHILL', W/2, y+22);
+    ctx.fillStyle=C.cyan; ctx.font='9px "Courier New"';
+    ctx.fillText('◄ ► CHOOSE EVENT', W/2, y+48);
+    ctx.fillStyle=C.white; ctx.font='bold 10px "Courier New"';
+    ctx.fillText('PRESS START', W/2, y+66);
+  }
+
+  function drawFinish(){
+    drawScene();
+    ctx.fillStyle='rgba(12,0,5,0.72)'; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center';
+    ctx.fillStyle=C.yellow; ctx.font='bold 20px "Courier New"';
+    ctx.fillText('FINISH!', W/2, 70);
+    ctx.fillStyle=C.white; ctx.font='bold 12px "Courier New"';
+    ctx.fillText(ev.name, W/2, 92);
+    ctx.font='13px "Courier New"';
+    ctx.fillText('Time    '+fmt(timeMs), W/2, 140);
+    ctx.fillStyle=C.green;
+    ctx.fillText('Gates   '+gatesPassed+'/'+gatesTotal, W/2, 162);
+    ctx.fillStyle=C.red;
+    ctx.fillText('Missed  '+gatesMissed+'  (+'+(penalty/1000).toFixed(1)+'s)', W/2, 184);
+    // grade
+    const rate=gatesPassed/gatesTotal;
+    let grade = rate>=1?'GOLD 🥇': rate>=0.8?'SILVER 🥈': rate>=0.6?'BRONZE 🥉':'DNF';
+    ctx.fillStyle=C.yellow; ctx.font='bold 16px "Courier New"';
+    ctx.fillText(grade, W/2, 220);
+    ctx.fillStyle=C.tan; ctx.font='bold 14px "Courier New"';
+    ctx.fillText('FINAL  '+fmt(timeMs+penalty), W/2, 250);
+    ctx.fillStyle=C.cyan; ctx.font='10px "Courier New"';
+    ctx.fillText('PRESS AGAIN TO RACE', W/2, 285);
+  }
+
+  // title-screen event selection via arrow edges
+  let prevL=false,prevR=false;
+  function titleInput(){
+    if(state!=='TITLE') return;
+    if(keys.left&&!prevL){ selEvent=EVENTS.SLALOM; beep(660,0.05,'square',0.08); }
+    if(keys.right&&!prevR){ selEvent=EVENTS.DOWNHILL; beep(660,0.05,'square',0.08); }
+    prevL=keys.left; prevR=keys.right;
+  }
+
+  // ---- Main loop ----
+  function frame(now){
+    let dt=now-last; last=now; if(dt>60)dt=60;
+    titleInput();
+    update(dt);
+    if(state==='TITLE') drawTitle();
+    else if(state==='FINISH') drawFinish();
+    else drawScene();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
