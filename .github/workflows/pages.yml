@@ -1,0 +1,55 @@
+name: Deploy Ski Game to GitHub Pages
+
+# Publishes ONLY the ski game to GitHub Pages (the focus-group registration
+# form in index.html is intentionally not included in the published site).
+# The first run also enables Pages automatically via configure-pages.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ski.html"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; don't cancel an in-progress publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble site (game only)
+        run: |
+          mkdir -p _site
+          # Serve the game at the site root for a clean tap-to-play URL...
+          cp ski.html _site/index.html
+          # ...and keep /ski.html working too.
+          cp ski.html _site/ski.html
+
+      - name: Configure Pages (enables Pages on first run)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
